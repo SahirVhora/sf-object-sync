@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SF Object Sync</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- ── Settings Modal ──────────────────────────────────────────────────── -->
+  <div id="settings-overlay" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h2 id="modal-title">Authentication Settings</h2>
+        <button class="modal-close" onclick="closeSettings()" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Auth Method -->
+        <div class="form-group">
+          <label for="auth_method">Authentication Method</label>
+          <select id="auth_method" class="select" onchange="toggleAuthFields(this.value)">
+            <option value="basic">Basic Auth (Username &amp; Password)</option>
+            <option value="oauth">OAuth 2.0 (Client Credentials)</option>
+            <option value="certificate">Certificate (Mutual TLS)</option>
+          </select>
+        </div>
+
+        <div class="modal-env-grid">
+          <!-- ── Source Environment ─────────────────────────────────── -->
+          <section class="env-section">
+            <h3 class="env-heading">Source Environment (PRD)</h3>
+
+            <div class="form-group">
+              <label for="source_url">OData v2 Base URL</label>
+              <input type="url" id="source_url" class="input-text"
+                     placeholder="https://&lt;prd-host&gt;/odata/v2">
+            </div>
+
+            <!-- Basic Auth -->
+            <div class="auth-fields" data-auth="basic">
+              <div class="form-group">
+                <label for="source_user">Username</label>
+                <input type="text" id="source_user" class="input-text"
+                       placeholder="api_user@company.com" autocomplete="username">
+              </div>
+              <div class="form-group">
+                <label for="source_password">Password</label>
+                <input type="password" id="source_password" class="input-text"
+                       autocomplete="current-password">
+              </div>
+            </div>
+
+            <!-- OAuth 2.0 -->
+            <div class="auth-fields" data-auth="oauth" hidden>
+              <div class="form-group">
+                <label for="source_client_id">Client ID</label>
+                <input type="text" id="source_client_id" class="input-text"
+                       placeholder="client_id">
+              </div>
+              <div class="form-group">
+                <label for="source_client_secret">Client Secret</label>
+                <input type="password" id="source_client_secret" class="input-text">
+              </div>
+              <div class="form-group">
+                <label for="source_token_url">Token URL</label>
+                <input type="url" id="source_token_url" class="input-text"
+                       placeholder="https://&lt;prd-host&gt;/oauth/token">
+              </div>
+            </div>
+
+            <!-- Certificate -->
+            <div class="auth-fields" data-auth="certificate" hidden>
+              <div class="form-group">
+                <label for="source_cert_path">Certificate Path</label>
+                <input type="text" id="source_cert_path" class="input-text"
+                       placeholder="/path/to/cert.pem">
+              </div>
+              <div class="form-group">
+                <label for="source_key_path">Private Key Path</label>
+                <input type="text" id="source_key_path" class="input-text"
+                       placeholder="/path/to/key.pem">
+              </div>
+              <div class="form-group">
+                <label for="source_company_id">Company ID</label>
+                <input type="text" id="source_company_id" class="input-text"
+                       placeholder="COMPANY_ID">
+              </div>
+            </div>
+          </section>
+
+          <!-- ── Target Environment ─────────────────────────────────── -->
+          <section class="env-section">
+            <h3 class="env-heading">Target Environment (Dev)</h3>
+
+            <div class="form-group">
+              <label for="target_url">OData v2 Base URL</label>
+              <input type="url" id="target_url" class="input-text"
+                     placeholder="https://&lt;dev-host&gt;/odata/v2">
+            </div>
+
+            <!-- Basic Auth -->
+            <div class="auth-fields" data-auth="basic">
+              <div class="form-group">
+                <label for="target_user">Username</label>
+                <input type="text" id="target_user" class="input-text"
+                       placeholder="api_user@company.com" autocomplete="username">
+              </div>
+              <div class="form-group">
+                <label for="target_password">Password</label>
+                <input type="password" id="target_password" class="input-text"
+                       autocomplete="current-password">
+              </div>
+            </div>
+
+            <!-- OAuth 2.0 -->
+            <div class="auth-fields" data-auth="oauth" hidden>
+              <div class="form-group">
+                <label for="target_client_id">Client ID</label>
+                <input type="text" id="target_client_id" class="input-text"
+                       placeholder="client_id">
+              </div>
+              <div class="form-group">
+                <label for="target_client_secret">Client Secret</label>
+                <input type="password" id="target_client_secret" class="input-text">
+              </div>
+              <div class="form-group">
+                <label for="target_token_url">Token URL</label>
+                <input type="url" id="target_token_url" class="input-text"
+                       placeholder="https://&lt;dev-host&gt;/oauth/token">
+              </div>
+            </div>
+
+            <!-- Certificate -->
+            <div class="auth-fields" data-auth="certificate" hidden>
+              <div class="form-group">
+                <label for="target_cert_path">Certificate Path</label>
+                <input type="text" id="target_cert_path" class="input-text"
+                       placeholder="/path/to/cert.pem">
+              </div>
+              <div class="form-group">
+                <label for="target_key_path">Private Key Path</label>
+                <input type="text" id="target_key_path" class="input-text"
+                       placeholder="/path/to/key.pem">
+              </div>
+              <div class="form-group">
+                <label for="target_company_id">Company ID</label>
+                <input type="text" id="target_company_id" class="input-text"
+                       placeholder="COMPANY_ID">
+              </div>
+            </div>
+          </section>
+        </div><!-- .modal-env-grid -->
+      </div><!-- .modal-body -->
+
+      <div class="modal-footer">
+        <span id="settings-saved-indicator" class="settings-saved-indicator" hidden>
+          &#10003; Credentials saved
+        </span>
+        <button class="btn btn-secondary btn-sm" onclick="clearSettings()">
+          Clear Saved Settings
+        </button>
+        <button class="btn btn-primary" onclick="saveSettings()">
+          Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Page Header ────────────────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div>
+        <h1 class="site-title">SF Object Sync</h1>
+        <p class="site-subtitle">SAP SuccessFactors OM Foundation Object Synchronisation</p>
+      </div>
+      <button class="settings-btn" onclick="openSettings()" title="Authentication Settings"
+              aria-label="Open authentication settings">
+        &#9881;
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    {% if error %}
+    <div class="alert alert-error">
+      <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Saved credentials status banner -->
+    <div id="credentials-banner" class="credentials-banner" hidden>
+      &#10003; Using saved credentials &mdash;
+      <button class="link-btn" onclick="openSettings()">Edit in Settings</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Sync Configuration</h2>
+        <a href="{{ url_for('download_template') }}" class="btn btn-secondary btn-sm">
+          &#8681; Download Sample Template
+        </a>
+      </div>
+
+      <!--
+        Hidden credential fields — populated from localStorage by JS before submit.
+        Falls back to server .env when blank.
+      -->
+      <form id="sync-form" method="POST" action="{{ url_for('process') }}"
+            enctype="multipart/form-data" onsubmit="populateHiddenFields()">
+
+        <!-- Hidden credential pass-through fields -->
+        <input type="hidden" name="auth_method"         id="h_auth_method">
+        <input type="hidden" name="source_url"          id="h_source_url">
+        <input type="hidden" name="source_user"         id="h_source_user">
+        <input type="hidden" name="source_password"     id="h_source_password">
+        <input type="hidden" name="source_client_id"    id="h_source_client_id">
+        <input type="hidden" name="source_client_secret" id="h_source_client_secret">
+        <input type="hidden" name="source_token_url"    id="h_source_token_url">
+        <input type="hidden" name="source_cert_path"    id="h_source_cert_path">
+        <input type="hidden" name="source_key_path"     id="h_source_key_path">
+        <input type="hidden" name="source_company_id"   id="h_source_company_id">
+        <input type="hidden" name="target_url"          id="h_target_url">
+        <input type="hidden" name="target_user"         id="h_target_user">
+        <input type="hidden" name="target_password"     id="h_target_password">
+        <input type="hidden" name="target_client_id"    id="h_target_client_id">
+        <input type="hidden" name="target_client_secret" id="h_target_client_secret">
+        <input type="hidden" name="target_token_url"    id="h_target_token_url">
+        <input type="hidden" name="target_cert_path"    id="h_target_cert_path">
+        <input type="hidden" name="target_key_path"     id="h_target_key_path">
+        <input type="hidden" name="target_company_id"   id="h_target_company_id">
+
+        <!-- ── File Upload ───────────────────────────────────────────── -->
+        <section class="form-section">
+          <h3>1. Input File</h3>
+          <div class="form-group">
+            <label for="input_file">Foundation Objects File <span class="required">*</span></label>
+            <input type="file" id="input_file" name="input_file"
+                   accept=".xlsx,.csv" required class="input-file">
+            <p class="hint">Upload an .xlsx or .csv with columns: <code>Object</code>, <code>Code</code></p>
+          </div>
+        </section>
+
+        <!-- ── Options ──────────────────────────────────────────────── -->
+        <section class="form-section">
+          <h3>2. Options</h3>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="dry_run" id="dry_run" value="on" checked>
+              <span class="checkbox-text">
+                <strong>Dry Run</strong> — preview payloads, no writes to target
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-lg">
+            &#9654; Run Sync
+          </button>
+          <p class="hint" style="margin-top:.75rem">
+            Configure credentials via the <button type="button" class="link-btn"
+            onclick="openSettings()">&#9881; Settings</button> panel before running.
+          </p>
+        </div>
+
+      </form>
+    </div><!-- .card -->
+
+    <!-- ── Supported Objects Reference ────────────────────────────────── -->
+    <div class="card card-info">
+      <h3>Supported Objects</h3>
+      <table class="ref-table">
+        <thead>
+          <tr><th>Level</th><th>Object Type</th><th>OData Entity Set</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>5</td><td>Sub Department</td><td><code>cust_SubDepartment</code></td></tr>
+          <tr><td>4</td><td>Department</td><td><code>FODepartment</code></td></tr>
+          <tr><td>3</td><td>Division</td><td><code>FODivision</code></td></tr>
+          <tr><td>2</td><td>Business Unit</td><td><code>FOBusinessUnit</code></td></tr>
+          <tr><td>1</td><td>Legal Entity</td><td><code>FOCompany</code></td></tr>
+        </tbody>
+      </table>
+      <p class="hint">
+        Input rows specify <strong>Sub Department</strong> or <strong>Department</strong> only.
+        Parent chains are resolved and synced automatically.
+      </p>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>SF OM Object Sync &mdash; SAP SuccessFactors Sync Tool</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

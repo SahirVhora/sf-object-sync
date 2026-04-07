@@ -1,0 +1,41 @@
+# Environment & credentials
+.env
+credentials/
+config/local_*.yaml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Output (runtime artefacts — never commit)
+output/
+!output/.gitkeep
+*.log
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (web UI temp files)
+web_ui/uploads/

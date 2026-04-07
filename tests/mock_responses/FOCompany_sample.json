@@ -1,0 +1,30 @@
+{
+  "d": {
+    "results": [
+      {
+        "__metadata": {
+          "uri": "https://example.successfactors.com/odata/v2/FOCompany(externalCode='LE_CORP',startDate=datetime'2020-01-01T00:00:00')",
+          "type": "SFOData.FOCompany"
+        },
+        "externalCode": "LE_CORP",
+        "startDate": "/Date(1577836800000)/",
+        "endDate": "/Date(253370764800000)/",
+        "status": "A",
+        "country": "GBR",
+        "currency": "GBP",
+        "name_defaultValue": "Corp Legal Entity",
+        "name_en_US": "Corp Legal Entity US",
+        "name_en_GB": "Corp Legal Entity GB",
+        "name_pl_PL": "Podmiot Prawny Corp",
+        "description_defaultValue": "Main Corporate Legal Entity",
+        "description_en_US": "Main Corporate Legal Entity US",
+        "description_en_GB": null,
+        "createdBy": "sfadmin",
+        "createdDateTime": "/Date(1577836800000)/",
+        "lastModifiedBy": "sfadmin",
+        "lastModifiedDateTime": "/Date(1609459200000)/",
+        "entityUUID": "eeff00-5678-9012-ef01-234567890123"
+      }
+    ]
+  }
+}

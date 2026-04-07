@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sync Results — SF Object Sync</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">SF Object Sync</h1>
+      <p class="site-subtitle">SAP SuccessFactors OM Foundation Object Synchronisation</p>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ── Top action bar ─────────────────────────────────────────────── -->
+    <div class="action-bar">
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">&larr; New Sync</a>
+      {% if result and result.report_path %}
+      <a href="{{ url_for('download_report', run_id=run_id) }}" class="btn btn-primary">
+        &#8681; Download Excel Report
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- ── Summary card ───────────────────────────────────────────────── -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Sync Summary</h2>
+        {% if result and result.dry_run %}
+        <span class="badge badge-dry-run">Dry Run</span>
+        {% else %}
+        <span class="badge badge-live">Live</span>
+        {% endif %}
+      </div>
+
+      {% if result and result.error %}
+      <div class="alert alert-error">
+        <strong>Fatal Error:</strong> {{ result.error }}
+      </div>
+      {% endif %}
+
+      {% if result %}
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if result.dry_run %}
+          <tr class="row-success">
+            <td>Would Create</td>
+            <td><strong>{{ result.success }}</strong></td>
+          </tr>
+          {% else %}
+          <tr class="row-success">
+            <td>Created Successfully</td>
+            <td><strong>{{ result.success }}</strong></td>
+          </tr>
+          <tr class="row-error">
+            <td>Failed</td>
+            <td><strong>{{ result.failure }}</strong></td>
+          </tr>
+          {% endif %}
+          <tr class="row-skip">
+            <td>Already Exist (Skipped)</td>
+            <td><strong>{{ result.skipped }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      {% if result.report_path %}
+      <p class="hint">Report saved: <code>{{ result.report_path }}</code></p>
+      {% endif %}
+      {% if result.summary_path %}
+      <p class="hint">Dry-run summary: <code>{{ result.summary_path }}</code></p>
+      {% endif %}
+      {% endif %}
+    </div>
+
+    <!-- ── Status Counts ─────────────────────────────────────────────── -->
+    {% if result and result.status_counts %}
+    <div class="card">
+      <h2>Status Breakdown</h2>
+      <table class="status-counts-table">
+        <thead>
+          <tr><th>Status</th><th>Count</th></tr>
+        </thead>
+        <tbody>
+          {% for label, count in result.status_counts.items() %}
+          <tr>
+            <td>{{ label }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- ── Log output ─────────────────────────────────────────────────── -->
+    {% if result and result.logs %}
+    <div class="card">
+      <h2>Run Log</h2>
+      <div class="log-container">
+        {% for line in result.logs %}
+          {% if "error" in line.lower() or "failed" in line.lower() %}
+          <div class="log-line log-error">{{ line }}</div>
+          {% elif "warning" in line.lower() or "warn" in line.lower() %}
+          <div class="log-line log-warning">{{ line }}</div>
+          {% elif "complete" in line.lower() or "success" in line.lower() or "created" in line.lower() %}
+          <div class="log-line log-success">{{ line }}</div>
+          {% else %}
+          <div class="log-line log-info">{{ line }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p>SF OM Object Sync &mdash; SAP SuccessFactors Sync Tool</p></div>
+  </footer>
+</body>
+</html>

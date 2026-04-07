@@ -1,0 +1,44 @@
+{
+  "d": {
+    "results": [
+      {
+        "__metadata": {
+          "uri": "https://example.successfactors.com/odata/v2/FODivision(externalCode='10012042',startDate=datetime'2020-01-01T00:00:00')",
+          "type": "SFOData.FODivision"
+        },
+        "externalCode": "10012042",
+        "startDate": "/Date(1577836800000)/",
+        "endDate": "/Date(253370764800000)/",
+        "status": "A",
+        "name_defaultValue": "European Division",
+        "name_en_US": "European Division US",
+        "name_en_GB": "European Division GB",
+        "name_en_DEBUG": "[D]European Division",
+        "name_pl_PL": "Europejski Dzial",
+        "description_defaultValue": "European Operations Division",
+        "parent": null,
+        "headOfUnit": null,
+        "createdBy": "sfadmin",
+        "createdDateTime": "/Date(1577836800000)/",
+        "lastModifiedBy": "sfadmin",
+        "lastModifiedDateTime": "/Date(1609459200000)/",
+        "entityUUID": "ccddee-3456-7890-cdef-012345678901",
+        "cust_BusinessUnit": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://example.successfactors.com/odata/v2/FOBusinessUnit(externalCode='GF00006',startDate=datetime'2020-01-01T00:00:00')",
+                "type": "SFOData.FOBusinessUnit"
+              },
+              "externalCode": "GF00006",
+              "startDate": "/Date(1577836800000)/",
+              "endDate": "/Date(253370764800000)/",
+              "status": "A",
+              "name_defaultValue": "Global Finance BU"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

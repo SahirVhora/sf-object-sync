@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sync in Progress — SF Object Sync</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">SF Object Sync</h1>
+      <p class="site-subtitle">SAP SuccessFactors OM Foundation Object Synchronisation</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>Sync in Progress</h2>
+        <span class="badge badge-running">Running</span>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar" style="width: {{ run.percent }}%"></div>
+        </div>
+        <p class="progress-label" id="progress-label">
+          {{ run.phase }}: {{ run.message }} ({{ run.percent }}%)
+        </p>
+      </div>
+
+      <p class="hint">This page updates automatically. Do not close the tab.</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p>sf_object_sync</p></div>
+  </footer>
+
+  <script>
+    const runId = {{ run_id | tojson }};
+    const pollUrl = `/api/status/${runId}`;
+    const resultsUrl = `/results/${runId}`;
+
+    function poll() {
+      fetch(pollUrl)
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById('progress-bar').style.width = data.percent + '%';
+          document.getElementById('progress-label').textContent =
+            `${data.phase}: ${data.message} (${data.percent}%)`;
+          if (data.status === 'done') {
+            window.location.href = resultsUrl;
+          } else {
+            setTimeout(poll, 1500);
+          }
+        })
+        .catch(() => setTimeout(poll, 3000));
+    }
+
+    setTimeout(poll, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "d": {
+    "results": [
+      {
+        "__metadata": {
+          "uri": "https://example.successfactors.com/odata/v2/FODepartment(externalCode='10016236',startDate=datetime'2020-01-01T00:00:00')",
+          "type": "SFOData.FODepartment"
+        },
+        "externalCode": "10016236",
+        "startDate": "/Date(1577836800000)/",
+        "endDate": "/Date(253370764800000)/",
+        "status": "A",
+        "name_defaultValue": "Finance Department",
+        "name_en_US": "Finance Department US",
+        "name_en_GB": "Finance Department GB",
+        "name_en_DEBUG": "[D]Finance Department",
+        "name_pl_PL": "Dzial Finansowy",
+        "description_defaultValue": "Finance and Accounting",
+        "description_en_US": "Finance and Accounting US",
+        "description_en_GB": null,
+        "parent": null,
+        "headOfUnit": null,
+        "createdBy": "sfadmin",
+        "createdDateTime": "/Date(1577836800000)/",
+        "lastModifiedBy": "sfadmin",
+        "lastModifiedDateTime": "/Date(1609459200000)/",
+        "entityUUID": "bbccdd-2345-6789-bcde-f01234567890",
+        "cust_Division": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://example.successfactors.com/odata/v2/FODivision(externalCode='10012042',startDate=datetime'2020-01-01T00:00:00')",
+                "type": "SFOData.FODivision"
+              },
+              "externalCode": "10012042",
+              "startDate": "/Date(1577836800000)/",
+              "endDate": "/Date(253370764800000)/",
+              "status": "A",
+              "name_defaultValue": "European Division"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
