@@ -1,4 +1,4 @@
-# sf_object_sync
+# SAPSF_ObjectSync
 
 Production-grade tool to synchronise SAP SuccessFactors Organisational Management (OM) foundation objects from a **PRD** tenant to a **Dev** (lower) tenant via **OData v2 APIs**.
 
@@ -120,14 +120,6 @@ pip install -r requirements.txt
 pip install -r requirements.txt -r requirements-web.txt
 ```
 
-### Optional: config.yaml (legacy)
-The tool still supports `config.yaml` credentials for backward compatibility:
-```bash
-python sf_object_sync.py --config config.yaml --input input.xlsx --dry-run
-# or via sync_engine:
-python -m src.sync_engine --config config.yaml --file input.xlsx --dry-run
-```
-
 ---
 
 ## CLI Usage
@@ -138,9 +130,6 @@ python -m src.sync_engine --file input.xlsx --dry-run
 
 # Live upload (set DRY_RUN=false in .env or omit --dry-run flag with DRY_RUN=false):
 python -m src.sync_engine --file input.xlsx
-
-# With config.yaml instead of .env:
-python -m src.sync_engine --config config.yaml --file input.xlsx --dry-run
 
 # Verbose (DEBUG logging):
 python -m src.sync_engine --file input.xlsx --dry-run --verbose
@@ -219,21 +208,19 @@ print(result["report_path"])  # path to Excel report
 ```
 sf_object_sync/
 ├── .env.example               # Credential template — copy to .env
-├── .gitignore
+├── .gitignore                 # Excludes .env, config.yaml, mock_responses/
 ├── README.md
 ├── requirements.txt           # Core dependencies
 ├── requirements-web.txt       # Additional deps for web UI
-├── sf_object_sync.py          # Legacy CLI entry point (backward-compatible)
 ├── sample_data/
 │   ├── foundation_objects_template.xlsx
 │   ├── generate_template.py
 │   └── README.md
 ├── src/
 │   ├── __init__.py
-│   ├── sync_engine.py         # NEW — programmatic API + CLI entry point
-│   ├── auth_handler.py        # NEW — Basic / OAuth / Certificate auth
+│   ├── sync_engine.py         # Programmatic API + CLI entry point
+│   ├── auth_handler.py        # Basic / OAuth / Certificate auth
 │   ├── entity_config.py       # ENTITY_CONFIG dict + constants
-│   ├── config_loader.py       # YAML loader + validation
 │   ├── sf_client.py           # OData v2 HTTP client (retry, pagination)
 │   ├── hierarchy_resolver.py  # PRD parent chain traversal
 │   ├── gap_checker.py         # Dev existence checks
@@ -251,13 +238,15 @@ sf_object_sync/
 │       └── style.css
 ├── output/                    # Runtime artefacts (git-ignored)
 └── tests/
-    ├── mock_responses/        # Sample OData JSON per entity
-    ├── test_sync_engine.py    # NEW — sync_engine unit tests
+    ├── mock_responses/        # Sample OData JSON per entity (git-ignored)
+    ├── test_sync_engine.py    # sync_engine unit tests
     ├── test_validator.py
     ├── test_hierarchy_resolver.py
     ├── test_gap_checker.py
     └── test_payload_builder.py
 ```
+
+> **Note:** `config.yaml` and `tests/mock_responses/` are git-ignored for security. See `.gitignore` for full exclusion list.
 
 ---
 
@@ -281,6 +270,8 @@ python -m pytest tests/ -v
 ```
 
 All tests mock `SFClient` — no live API calls are made.
+
+> **Note:** Mock response JSON files in `tests/mock_responses/` are excluded from version control. See test files for inline mock data or generate fresh mocks locally.
 
 ---
 
@@ -323,20 +314,35 @@ The HTTP client retries automatically on HTTP `429`, `500`, `502`, `503`, `504` 
 
 ---
 
-## Migrating from sf_object_sync.py
+## Security Best Practices
 
-Existing `config.yaml` users continue to work unchanged. To migrate to `.env`:
+1. **Never commit credentials** — `.env` and `config.yaml` are git-ignored
+2. **Rotate credentials immediately** if accidentally committed to version control
+3. **Use certificate auth** for production environments where possible
+4. **Restrict API user permissions** to the minimum required (read on PRD, write on Dev)
+5. **Review `.gitignore`** before first commit to ensure sensitive files are excluded
 
-1. Copy credentials from `config.yaml` to `.env`:
-   ```env
-   SF_SOURCE_URL=<prd.base_url>
-   SF_SOURCE_USER=<prd.username>
-   SF_SOURCE_PASSWORD=<prd.password>
-   SF_TARGET_URL=<dev.base_url>
-   SF_TARGET_USER=<dev.username>
-   SF_TARGET_PASSWORD=<dev.password>
-   ```
-2. Replace `python sf_object_sync.py --config config.yaml --input input.xlsx` with:
-   ```bash
-   python -m src.sync_engine --file input.xlsx
-   ```
+---
+
+## License
+
+Apache 2.0 — see [LICENSE](LICENSE) for details.
+
+---
+
+## Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+Ensure all tests pass (`pytest tests/ -v`) before submitting.
+
+---
+
+## Support
+
+For issues, questions, or feature requests, please open an issue on GitHub.
