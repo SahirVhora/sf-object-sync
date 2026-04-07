@@ -39,3 +39,8 @@ Thumbs.db
 
 # Uploads (web UI temp files)
 web_ui/uploads/
+
+# Add these lines to .gitignore
+tests/mock_responses/
+tests/__init__.py
+

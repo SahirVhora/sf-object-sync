@@ -1,0 +1,15 @@
+# config.yaml.example
+sap_successfactors:
+  production:
+    base_url: "https://your-instance.successfactors.com"
+    company_id: "YOUR_COMPANY_ID"
+    username: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+  
+  development:
+    base_url: "https://your-dev-instance.successfactors.com"
+    company_id: "YOUR_COMPANY_ID"
+    username: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+
+# Add other configuration sections...
