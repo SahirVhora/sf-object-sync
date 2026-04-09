@@ -104,11 +104,21 @@ def _build_summary(ws, run_meta: Dict[str, Any], audit_records: List[Dict]) -> N
         ("── Status Counts ──", ""),
     ]
 
-    # Count each status from audit records
+    # Count each unique entity/status combination once.
+    # Audit records may include the same entity in multiple phases
+    # (for example gap_check and upload both log DEV_EXISTS), so raw
+    # record counts would inflate summary totals.
     status_counts: Dict[str, int] = {s: 0 for s in ALL_STATUSES}
+    seen: set = set()
     for rec in audit_records:
         s = rec.get("status", "")
-        if s in status_counts:
+        key = (
+            rec.get("object_type", ""),
+            rec.get("external_code", ""),
+            s,
+        )
+        if s in status_counts and key not in seen:
+            seen.add(key)
             status_counts[s] += 1
 
     for status in ALL_STATUSES:

@@ -53,7 +53,8 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         "date_field": "effectiveStartDate",
         # Status field and active value
         "status_field": "mdfSystemStatus",
-        "active_status_value": "A",
+        #"active_status_value": "A",
+        "active_status_value": "mdfSystemStatus",
         # The Department link is maintained via the "cust_Department" OData
         # association (One To Many, Valid When type).  The "cust_parentDepartment"
         # string field is null in GET responses — the parent is resolved by
@@ -76,7 +77,8 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         "key_fields": ["externalCode", "startDate"],
         "date_field": "startDate",
         "status_field": "status",
-        "active_status_value": "A",
+        #"active_status_value": "A",
+        "active_status_value": "status",
         # FODepartment has no plain FK field for its Division.
         # The Division is reached via the "cust_Division" OData navigation property.
         # NOTE: "parent" is a self-referencing Dept→Dept field — do NOT use it.
@@ -93,7 +95,8 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         "key_fields": ["externalCode", "startDate"],
         "date_field": "startDate",
         "status_field": "status",
-        "active_status_value": "A",
+        #"active_status_value": "A",
+        "active_status_value": "status",
         # FODivision has no plain FK field for its Business Unit.
         # NOTE: "parent" is a self-referencing Div→Div field — do NOT use it.
         "parent_field": None,
@@ -109,7 +112,8 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         "key_fields": ["externalCode", "startDate"],
         "date_field": "startDate",
         "status_field": "status",
-        "active_status_value": "A",
+        #"active_status_value": "A",
+        "active_status_value": "status",
         # NOTE: cust_parentBusinessUnit is a BU→BU self-ref; do NOT use it for LE.
         "parent_field": None,
         "parent_nav": "cust_legalEntity",    # $expand this to get the parent Legal Entity record
@@ -124,7 +128,8 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         "key_fields": ["externalCode", "startDate"],
         "date_field": "startDate",
         "status_field": "status",
-        "active_status_value": "A",
+        #"active_status_value": "A",
+        "active_status_value": "status",
         "parent_field": None,    # top of hierarchy — no parent
         "parent_nav": None,
         "parent_entity": None,

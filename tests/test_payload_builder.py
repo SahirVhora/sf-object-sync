@@ -161,6 +161,20 @@ class TestBuildSubDepartment:
         # Nav property must be an inline object (SF MDF OData v2 requirement)
         assert payload["cust_Department"] == {"externalCode": "10016236"}
 
+    def test_parent_department_uri_with_pre_1970_start_date(self):
+        base_url = "https://example.com/odata/v2"
+        parent_codes = {
+            "Department": "10016236",
+            "_Department_startDate": "/Date(-2208960000000)/",
+            "_base_url": base_url,
+        }
+        payload = build_payload("Sub Department", SUBDEPT_RECORD, parent_codes)
+        assert payload["cust_Department"]["__metadata"]["uri"] == (
+            "https://example.com/odata/v2/FODepartment("
+            "externalCode='10016236',"
+            "startDate=datetime'1900-01-01T08:00:00')"
+        )
+
     def test_effectiveStartDate_copied_from_prd(self):
         payload = build_cust_SubDepartment(SUBDEPT_RECORD, "10016236")
         # Must be the PRD value, not today's date

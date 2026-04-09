@@ -13,7 +13,7 @@ Rules:
 import logging
 import re
 from calendar import timegm
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Optional
 
 from .entity_config import EXCLUDED_FROM_POST, INFINITY_DATE_MS
@@ -26,7 +26,8 @@ INFINITY_DATE_STR = f"/Date({INFINITY_DATE_MS})/"
 def _odata_date_to_datetime_key(date_str: str) -> str:
     """Convert /Date(<ms>)/ → OData URI datetime key: 'YYYY-MM-DDTHH:MM:SS'."""
     ms = int(re.search(r"/Date\((-?\d+)", date_str).group(1))
-    dt = datetime.utcfromtimestamp(ms / 1000)
+    epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    dt = epoch + timedelta(milliseconds=ms)
     return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
 
@@ -86,13 +87,40 @@ def _copy_locale_fields(
     (en_DEBUG, _localized, system fields).  This captures whatever locales
     the PRD instance actually has — no hard-coded locale list required.
     """
-    for key in record:
-        if key.startswith(f"{prefix}_") and not _is_excluded(key):
-            # Skip the aggregated "_localized" pseudo-field (read-only)
-            if key == f"{prefix}_localized":
-                continue
-            _copy_if_present(payload, record, key)
+#    for key in record:
+#        if key.startswith(f"{prefix}_") and not _is_excluded(key):
+#            # Skip the aggregated "_localized" pseudo-field (read-only)
+#            if key == f"{prefix}_localized":
+#                continue
+#            _copy_if_present(payload, record, key)
+            
+    
+    for field, value in record.items():
+        # Match locale-specific fields like name_en_US
+        if not field.startswith(f"{prefix}_"):
+            continue
 
+        if _is_excluded(field):
+            continue
+
+        val = _optional(record, field)
+        if val is None:
+            continue
+
+        payload[field] = val
+# Add mdfstatus 
+def _resolve_mdf_status(record: Dict[str, Any]) -> str:
+    status = record.get("mdfSystemStatus", "A")
+
+    if status not in ("A", "I"):
+        logger.warning(
+            "Unexpected mdfSystemStatus '%s' for %s – defaulting to 'A'",
+            status,
+            record.get("externalCode"),
+        )
+        return "A"
+
+    return status
 
 # ---------------------------------------------------------------------------
 # Per-entity payload builders
@@ -135,6 +163,7 @@ def build_cust_SubDepartment(
         # Use the PRD effectiveStartDate so Dev matches the source system exactly.
         "effectiveStartDate": record["effectiveStartDate"],
         "mdfSystemStatus": "A",
+        "mdfSystemStatus": record.get("mdfSystemStatus", "A"),
         # SF MDF OData v2: navigation properties must be inline objects, not plain strings.
         # "cust_Department" is a Valid When association.
         "cust_Department": dept_nav,
