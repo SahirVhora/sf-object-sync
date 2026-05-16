@@ -36,7 +36,7 @@ cp .env.example .env
 #    (or run: python sample_data/generate_template.py)
 #    Open sample_data/foundation_objects_template.xlsx and fill in your codes.
 
-# 5a. Run via CLI (dry run — safe preview, no writes)
+# 5a. Run via CLI (dry run - safe preview, no writes)
 python -m src.sync_engine --file sample_data/foundation_objects_template.xlsx --dry-run
 
 # 5b. OR launch the web UI
@@ -207,7 +207,7 @@ print(result["report_path"])  # path to Excel report
 
 ```
 sf_object_sync/
-├── .env.example               # Credential template — copy to .env
+├── .env.example               # Credential template - copy to .env
 ├── .gitignore                 # Excludes .env, config.yaml, mock_responses/
 ├── README.md
 ├── requirements.txt           # Core dependencies
@@ -257,7 +257,7 @@ All files are written to `OUTPUT_DIR` (default: `./output/`).
 | File | Description |
 |------|-------------|
 | `sync_<ts>.log` | Full run log (plain text) |
-| `audit_<ts>.jsonl` | One JSON line per event — machine-readable audit trail |
+| `audit_<ts>.jsonl` | One JSON line per event - machine-readable audit trail |
 | `dry_run_summary_<ts>.txt` | Human-readable dry-run payloads and integrity report |
 | `sync_report_<ts>.xlsx` | 4-sheet Excel workbook (Summary, Object Detail, Payload Log, Validation Errors) |
 
@@ -269,7 +269,7 @@ All files are written to `OUTPUT_DIR` (default: `./output/`).
 python -m pytest tests/ -v
 ```
 
-All tests mock `SFClient` — no live API calls are made.
+All tests mock `SFClient` - no live API calls are made.
 
 > **Note:** Mock response JSON files in `tests/mock_responses/` are excluded from version control. See test files for inline mock data or generate fresh mocks locally.
 
@@ -283,7 +283,7 @@ All tests mock `SFClient` — no live API calls are made.
 | `PRD_NOT_FOUND` | Phase 2/3 | Entity or ancestor not found in PRD |
 | `HIERARCHY_BROKEN` | Phase 3 | Parent field is null/empty in PRD |
 | `DEV_EXISTS` | Phase 4 | Entity already exists in Dev |
-| `DEV_MISSING` | Phase 4 | Entity not found in Dev — will be created |
+| `DEV_MISSING` | Phase 4 | Entity not found in Dev - will be created |
 | `DRY_RUN_OK` | Phase 5 | Payload built successfully in dry run |
 | `DRY_RUN_INTEGRITY_FAIL` | Phase 5 | Payload build error in dry run |
 | `UPLOAD_SUCCESS` | Phase 6 | POST returned HTTP 201 |
@@ -304,7 +304,7 @@ All tests mock `SFClient` — no live API calls are made.
 | `FOBusinessUnit` | `startDate` | `status` | `cust_legalEntityProp` → `FOCompany` (**not** `cust_parentBusinessUnit`) |
 | `FOCompany` | `startDate` | `status` | *(top of hierarchy)* |
 
-> The `parent` field in `FODepartment` and `FODivision` is a **self-referencing** tree — it is **not** the cross-entity link. Always use `cust_DivisionProp` / `cust_BusinessUnitProp` / `cust_legalEntityProp`.
+> The `parent` field in `FODepartment` and `FODivision` is a **self-referencing** tree - it is **not** the cross-entity link. Always use `cust_DivisionProp` / `cust_BusinessUnitProp` / `cust_legalEntityProp`.
 
 ---
 
@@ -316,7 +316,7 @@ The HTTP client retries automatically on HTTP `429`, `500`, `502`, `503`, `504` 
 
 ## Security Best Practices
 
-1. **Never commit credentials** — `.env` and `config.yaml` are git-ignored
+1. **Never commit credentials** - `.env` and `config.yaml` are git-ignored
 2. **Rotate credentials immediately** if accidentally committed to version control
 3. **Use certificate auth** for production environments where possible
 4. **Restrict API user permissions** to the minimum required (read on PRD, write on Dev)
@@ -326,7 +326,7 @@ The HTTP client retries automatically on HTTP `429`, `500`, `502`, `503`, `504` 
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE) for details.
+Apache 2.0 - see [LICENSE](LICENSE) for details.
 
 ---
 

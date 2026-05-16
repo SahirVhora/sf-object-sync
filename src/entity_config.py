@@ -57,7 +57,7 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         "active_status_value": "mdfSystemStatus",
         # The Department link is maintained via the "cust_Department" OData
         # association (One To Many, Valid When type).  The "cust_parentDepartment"
-        # string field is null in GET responses — the parent is resolved by
+        # string field is null in GET responses - the parent is resolved by
         # $expand=cust_Department, same as the FO entity pattern.
         "parent_field": None,
         "parent_nav": "cust_Department",
@@ -81,7 +81,7 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         "active_status_value": "status",
         # FODepartment has no plain FK field for its Division.
         # The Division is reached via the "cust_Division" OData navigation property.
-        # NOTE: "parent" is a self-referencing Dept→Dept field — do NOT use it.
+        # NOTE: "parent" is a self-referencing Dept→Dept field - do NOT use it.
         "parent_field": None,
         "parent_nav": "cust_Division",       # $expand this to get the parent Division record
         "parent_entity": "Division",
@@ -98,7 +98,7 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         #"active_status_value": "A",
         "active_status_value": "status",
         # FODivision has no plain FK field for its Business Unit.
-        # NOTE: "parent" is a self-referencing Div→Div field — do NOT use it.
+        # NOTE: "parent" is a self-referencing Div→Div field - do NOT use it.
         "parent_field": None,
         "parent_nav": "cust_BusinessUnit",   # $expand this to get the parent BU record
         "parent_entity": "Business Unit",
@@ -130,7 +130,7 @@ ENTITY_CONFIG: Dict[str, Dict[str, Any]] = {
         "status_field": "status",
         #"active_status_value": "A",
         "active_status_value": "status",
-        "parent_field": None,    # top of hierarchy — no parent
+        "parent_field": None,    # top of hierarchy - no parent
         "parent_nav": None,
         "parent_entity": None,
         "end_date_field": "endDate",

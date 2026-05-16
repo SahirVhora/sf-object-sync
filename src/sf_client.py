@@ -92,7 +92,7 @@ class SFClient:
                     return resp
                 wait = BACKOFF_SECONDS[min(attempt, len(BACKOFF_SECONDS) - 1)]
                 logger.warning(
-                    "HTTP %s from %s (attempt %d/%d) — retrying in %ds",
+                    "HTTP %s from %s (attempt %d/%d) - retrying in %ds",
                     resp.status_code,
                     url,
                     attempt + 1,
@@ -104,7 +104,7 @@ class SFClient:
             except requests.exceptions.RequestException as exc:
                 wait = BACKOFF_SECONDS[min(attempt, len(BACKOFF_SECONDS) - 1)]
                 logger.warning(
-                    "Request error on %s (attempt %d/%d): %s — retrying in %ds",
+                    "Request error on %s (attempt %d/%d): %s - retrying in %ds",
                     url,
                     attempt + 1,
                     MAX_RETRIES,

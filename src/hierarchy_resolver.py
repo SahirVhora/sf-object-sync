@@ -1,5 +1,5 @@
 """
-Hierarchy resolver — walks the parent chain from a starting object up to
+Hierarchy resolver - walks the parent chain from a starting object up to
 Legal Entity using ENTITY_CONFIG.
 
 Parent lookup strategy (per entity type):
@@ -99,7 +99,7 @@ def _extract_parent_code_from_nav(
     if not nav_data or isinstance(nav_data, str):
         return None
 
-    # Still deferred — expand was not honoured
+    # Still deferred - expand was not honoured
     if "__deferred" in nav_data:
         return None
 
@@ -133,7 +133,7 @@ class HierarchyResolver:
         Fetch entity from PRD with cache.
 
         For entities using parent_nav, fetches with $expand so the parent
-        record is embedded inline — avoiding a second round-trip.
+        record is embedded inline - avoiding a second round-trip.
         """
         key = (entity_type, code)
         if key in self._cache:
@@ -190,7 +190,7 @@ class HierarchyResolver:
         if parent_nav:
             return _extract_parent_code_from_nav(record, parent_nav)
 
-        return None  # Legal Entity — no parent
+        return None  # Legal Entity - no parent
 
     def resolve(
         self,
@@ -204,8 +204,8 @@ class HierarchyResolver:
         (starting object first, Legal Entity last).
 
         Raises:
-          EntityNotFoundError  — if any entity is missing in PRD
-          HierarchyBrokenError — if a parent reference cannot be resolved
+          EntityNotFoundError  - if any entity is missing in PRD
+          HierarchyBrokenError - if a parent reference cannot be resolved
         """
         chain: List[Tuple[str, str, Dict[str, Any]]] = []
         current_type = start_entity_type

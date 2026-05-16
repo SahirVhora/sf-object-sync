@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_template.py — creates sample_data/foundation_objects_template.xlsx
+generate_template.py - creates sample_data/foundation_objects_template.xlsx
 
 Run from the sf_object_sync root:
   python sample_data/generate_template.py
@@ -55,7 +55,7 @@ def main() -> None:
     ws.row_dimensions[1].height = 22
 
     # ── Header row ────────────────────────────────────────────────────────────
-    headers = ["Object", "Code", "Notes (optional — ignored by tool)"]
+    headers = ["Object", "Code", "Notes (optional - ignored by tool)"]
     for col, hdr in enumerate(headers, start=1):
         cell = ws.cell(row=2, column=col, value=hdr)
         cell.font = HEADER_FONT

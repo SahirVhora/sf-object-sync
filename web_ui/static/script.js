@@ -1,5 +1,5 @@
 /**
- * sf_object_sync — Web UI JavaScript
+ * sf_object_sync - Web UI JavaScript
  * Handles: settings modal, localStorage persistence, dynamic auth fields
  */
 

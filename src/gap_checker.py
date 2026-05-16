@@ -1,5 +1,5 @@
 """
-Gap checker — determines which entities in a resolved hierarchy chain
+Gap checker - determines which entities in a resolved hierarchy chain
 are missing from the Dev tenant.
 
 Deduplicates: if the same (entity_type, externalCode) appears in multiple
@@ -93,7 +93,7 @@ class GapChecker:
             records = self._client.get_entity_by_code(entity_set, code)
         except SFClientError as exc:
             logger.warning(
-                "Dev check error for %s '%s': %s — treating as MISSING",
+                "Dev check error for %s '%s': %s - treating as MISSING",
                 entity_type,
                 code,
                 exc,

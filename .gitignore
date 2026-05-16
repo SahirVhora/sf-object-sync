@@ -48,7 +48,7 @@ tests/mock_responses/
 **/mock_responses/
 tests/__init__.py
 
-# Output (runtime artefacts — never commit)
+# Output (runtime artefacts - never commit)
 output/
 !output/.gitkeep
 exports/

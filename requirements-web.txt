@@ -1,4 +1,4 @@
-# Web UI dependencies — install in addition to requirements.txt
+# Web UI dependencies - install in addition to requirements.txt
 # pip install -r requirements.txt -r requirements-web.txt
 Flask>=3.0.0
 Werkzeug>=3.0.0

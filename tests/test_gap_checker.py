@@ -1,7 +1,7 @@
 """
 Tests for GapChecker.
 
-All tests mock SFClient — no live API calls.
+All tests mock SFClient - no live API calls.
 """
 
 import json
@@ -140,7 +140,7 @@ class TestGapChecker:
         results = checker.check_chain(chain)
 
         # The active-record selector will pick the only record as fallback
-        # so this tests the fallback path — still should return something
+        # so this tests the fallback path - still should return something
         assert results[0].status in (DEV_EXISTS, DEV_MISSING)
 
     def test_get_results_returns_all(self, mock_dev_empty):

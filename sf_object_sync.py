@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sf_object_sync.py — SAP SuccessFactors OM Foundation Object Sync Tool
+sf_object_sync.py - SAP SuccessFactors OM Foundation Object Sync Tool
 
 Synchronises Sub Departments and Departments (+ full parent chains) from a
 PRD SuccessFactors tenant to a Dev tenant via OData v2 Basic Auth APIs.
@@ -69,17 +69,17 @@ def setup_logging(log_level: str, output_dir: str) -> str:
     root = logging.getLogger()
     root.setLevel(numeric_level)
 
-    # Console (coloured) — always INFO or above; DEBUG goes to file only
+    # Console (coloured) - always INFO or above; DEBUG goes to file only
     ch = ColouredConsoleHandler(sys.stdout)
     ch.setLevel(max(numeric_level, logging.INFO))
-    ch.setFormatter(logging.Formatter("[%(levelname)s] %(name)s — %(message)s"))
+    ch.setFormatter(logging.Formatter("[%(levelname)s] %(name)s - %(message)s"))
     root.addHandler(ch)
 
     # File (plain)
     fh = logging.FileHandler(log_path, encoding="utf-8")
     fh.setLevel(logging.DEBUG)  # always capture everything in file
     fh.setFormatter(
-        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s — %(message)s")
+        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s - %(message)s")
     )
     root.addHandler(fh)
 
@@ -110,7 +110,7 @@ def phase1_validate_input(
 
     Returns list of valid rows: [{"object_type": ..., "code": ...}, ...]
     """
-    logger.info("Phase 1 — Validating input: %s", input_path)
+    logger.info("Phase 1 - Validating input: %s", input_path)
 
     if not os.path.isfile(input_path):
         logger.error("Input file not found: %s", input_path)
@@ -263,7 +263,7 @@ def phase2_prd_check(
     Populates prd_cache with (entity_type, code) → active record.
     Returns list of rows confirmed in PRD.
     """
-    logger.info("Phase 2 — PRD existence check (%d rows)", len(valid_rows))
+    logger.info("Phase 2 - PRD existence check (%d rows)", len(valid_rows))
     confirmed: List[Dict[str, str]] = []
 
     from src.hierarchy_resolver import _select_active_record
@@ -275,7 +275,7 @@ def phase2_prd_check(
         entity_set = cfg["entity_set"]
 
         # Fetch with $expand on parent nav so the cached record already
-        # contains the embedded parent — Phase 3 cache hits will have it.
+        # contains the embedded parent - Phase 3 cache hits will have it.
         parent_nav = cfg.get("parent_nav")
         logger.info(
             "PRD check: %s '%s' (%s)%s",
@@ -348,7 +348,7 @@ def phase3_resolve_hierarchies(
     Populates prd_cache from HierarchyResolver's internal cache.
     Returns (resolved_chains, failed_rows).
     """
-    logger.info("Phase 3 — Hierarchy traversal (%d rows)", len(confirmed_rows))
+    logger.info("Phase 3 - Hierarchy traversal (%d rows)", len(confirmed_rows))
     resolver = HierarchyResolver(prd_client)
 
     # Pre-populate resolver cache from Phase 2 fetches
@@ -423,7 +423,7 @@ def phase4_gap_analysis(
 
     Returns (GapChecker instance, gap_results dict).
     """
-    logger.info("Phase 4 — Dev gap analysis")
+    logger.info("Phase 4 - Dev gap analysis")
     checker = GapChecker(dev_client)
 
     for chain in resolved_chains:
@@ -456,11 +456,11 @@ def phase5_dry_run(
 
     Returns path to the saved dry_run_summary file.
     """
-    logger.info("Phase 5 — DRY RUN (no writes to Dev)")
+    logger.info("Phase 5 - DRY RUN (no writes to Dev)")
 
     lines: List[str] = [
         "=" * 70,
-        "  DRY RUN SUMMARY — sf_object_sync",
+        "  DRY RUN SUMMARY - sf_object_sync",
         f"  Generated at: {datetime.now(timezone.utc).isoformat()}",
         "=" * 70,
         "",
@@ -498,7 +498,7 @@ def phase5_dry_run(
 
     total_missing = sum(len(v) for v in missing_by_level.values())
     lines.append(f"  Total entities to create: {total_missing}")
-    lines.append(f"  Referential integrity:    {'OK' if integrity_ok else 'WARNING — see log'}")
+    lines.append(f"  Referential integrity:    {'OK' if integrity_ok else 'WARNING - see log'}")
     lines.append("")
 
     # Print each missing entity's payload
@@ -585,7 +585,7 @@ def phase6_upload(
 
     # ── Warning banner ───────────────────────────────────────────────────────
     print("\n" + Fore.RED + "!" * 70)
-    print(Fore.RED + "  LIVE MODE — WRITES TO DEV WILL OCCUR")
+    print(Fore.RED + "  LIVE MODE - WRITES TO DEV WILL OCCUR")
     print(Fore.RED + "  Review the gap analysis above before proceeding.")
     print(Fore.RED + "!" * 70 + Style.RESET_ALL)
 
@@ -603,11 +603,11 @@ def phase6_upload(
 
     if answer not in ("yes", "y"):
         print(Fore.YELLOW + "\n  Upload aborted by user." + Style.RESET_ALL)
-        logger.info("Upload aborted — user declined")
+        logger.info("Upload aborted - user declined")
         return
 
     print()
-    logger.info("Phase 6 — Live upload commencing")
+    logger.info("Phase 6 - Live upload commencing")
 
     uploader = Uploader(
         dev_client=dev_client,
@@ -632,7 +632,7 @@ def phase7_report(
     output_dir: str,
 ) -> str:
     """Build object_detail_rows from chains + gap_results and generate Excel report."""
-    logger.info("Phase 7 — Generating Excel report")
+    logger.info("Phase 7 - Generating Excel report")
 
     from src.entity_config import ENTITY_CONFIG
 
@@ -699,7 +699,7 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Dry run (safe preview — default):
+  # Dry run (safe preview - default):
   python sf_object_sync.py --config config.yaml --input input.xlsx
 
   # Force dry run explicitly:

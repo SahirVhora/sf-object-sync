@@ -1,5 +1,5 @@
 """
-Excel report generator — produces a 4-sheet workbook in output/.
+Excel report generator - produces a 4-sheet workbook in output/.
 
 Sheet 1 Summary        : run metadata and status counts
 Sheet 2 Object Detail  : one row per processed object

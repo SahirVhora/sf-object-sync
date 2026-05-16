@@ -1,5 +1,5 @@
 """
-Audit logger — writes one JSON line per event to output/audit_<timestamp>.jsonl.
+Audit logger - writes one JSON line per event to output/audit_<timestamp>.jsonl.
 
 Each record captures: phase, object type, status, HTTP details, payload/response,
 dry_run flag, and a shared run_id (uuid4) for correlation across the run.
@@ -46,7 +46,7 @@ ALL_STATUSES = [
 
 class AuditLogger:
     """
-    JSONL audit logger.  One instance per run — maintains run_id and file handle.
+    JSONL audit logger.  One instance per run - maintains run_id and file handle.
 
     Usage:
         with AuditLogger(output_dir, dry_run) as al:

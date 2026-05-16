@@ -1,7 +1,7 @@
 """
-tests/test_sync_engine.py — unit tests for src/sync_engine.py
+tests/test_sync_engine.py - unit tests for src/sync_engine.py
 
-Tests mock SFClient at the boundary — no live API calls are made.
+Tests mock SFClient at the boundary - no live API calls are made.
 """
 
 import os

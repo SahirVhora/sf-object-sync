@@ -214,7 +214,7 @@ class TestBuildDepartment:
         payload = build_FODepartment(DEPT_RECORD, "10012042")
         assert "externalCode" in payload
         assert "startDate" in payload
-        assert "endDate" not in payload  # not insertable — SF sets automatically
+        assert "endDate" not in payload  # not insertable - SF sets automatically
         assert "status" in payload
         assert "cust_DivisionProp" in payload
 
@@ -228,7 +228,7 @@ class TestBuildDepartment:
 
     def test_end_date_not_in_payload(self):
         payload = build_FODepartment(DEPT_RECORD, "10012042")
-        assert "endDate" not in payload  # not insertable — SF sets automatically
+        assert "endDate" not in payload  # not insertable - SF sets automatically
 
     def test_start_date_today_format(self):
         payload = build_FODepartment(DEPT_RECORD, "10012042")
@@ -264,7 +264,7 @@ class TestBuildDivision:
 
     def test_end_date_not_in_payload(self):
         payload = build_FODivision(DIV_RECORD, "GF00006")
-        assert "endDate" not in payload  # not insertable — SF sets automatically
+        assert "endDate" not in payload  # not insertable - SF sets automatically
 
     def test_status_A(self):
         payload = build_FODivision(DIV_RECORD, "GF00006")
@@ -294,7 +294,7 @@ class TestBuildBusinessUnit:
 
     def test_end_date_not_in_payload(self):
         payload = build_FOBusinessUnit(BU_RECORD, "LE_CORP")
-        assert "endDate" not in payload  # not insertable — SF sets automatically
+        assert "endDate" not in payload  # not insertable - SF sets automatically
 
 
 # ---------------------------------------------------------------------------
@@ -323,7 +323,7 @@ class TestBuildLegalEntity:
 
     def test_end_date_not_in_payload(self):
         payload = build_FOCompany(LE_RECORD)
-        assert "endDate" not in payload  # not insertable — SF sets automatically
+        assert "endDate" not in payload  # not insertable - SF sets automatically
 
 
 # ---------------------------------------------------------------------------

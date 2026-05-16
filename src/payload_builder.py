@@ -1,5 +1,5 @@
 """
-Payload builder — constructs OData v2 POST payloads for each entity type.
+Payload builder - constructs OData v2 POST payloads for each entity type.
 
 Rules:
   - Date fields use /Date(<epoch_ms>)/ format
@@ -85,7 +85,7 @@ def _copy_locale_fields(
 
     Scans all keys matching ``<prefix>_*``, skipping excluded ones
     (en_DEBUG, _localized, system fields).  This captures whatever locales
-    the PRD instance actually has — no hard-coded locale list required.
+    the PRD instance actually has - no hard-coded locale list required.
     """
 #    for key in record:
 #        if key.startswith(f"{prefix}_") and not _is_excluded(key):
@@ -93,8 +93,8 @@ def _copy_locale_fields(
 #            if key == f"{prefix}_localized":
 #                continue
 #            _copy_if_present(payload, record, key)
-            
-    
+
+
     for field, value in record.items():
         # Match locale-specific fields like name_en_US
         if not field.startswith(f"{prefix}_"):
@@ -108,7 +108,7 @@ def _copy_locale_fields(
             continue
 
         payload[field] = val
-# Add mdfstatus 
+# Add mdfstatus
 def _resolve_mdf_status(record: Dict[str, Any]) -> str:
     status = record.get("mdfSystemStatus", "A")
 
@@ -169,7 +169,7 @@ def build_cust_SubDepartment(
         "cust_Department": dept_nav,
     }
 
-    # Name and description — all locales present in the PRD record
+    # Name and description - all locales present in the PRD record
     _copy_locale_fields(payload, record, "externalName")
     _copy_locale_fields(payload, record, "cust_description")
 
@@ -189,7 +189,7 @@ def build_FODepartment(
     Build POST payload for FODepartment.
 
     parent_division_code: externalCode of the parent FODivision.
-    NOTE: 'parent' field in FODepartment is self-referencing — DO NOT use
+    NOTE: 'parent' field in FODepartment is self-referencing - DO NOT use
     as Division link. Division is always cust_DivisionProp.
     """
     payload: Dict[str, Any] = {
@@ -202,7 +202,7 @@ def build_FODepartment(
         "cust_DivisionProp": parent_division_code,
     }
 
-    # Name and description — all locales present in the PRD record
+    # Name and description - all locales present in the PRD record
     _copy_locale_fields(payload, record, "name")
     _copy_locale_fields(payload, record, "description")
 
@@ -221,19 +221,19 @@ def build_FODivision(
     Build POST payload for FODivision.
 
     parent_bu_code: externalCode of the parent FOBusinessUnit.
-    NOTE: 'parent' in FODivision is self-referencing — DO NOT use as BU link.
+    NOTE: 'parent' in FODivision is self-referencing - DO NOT use as BU link.
     BU is always cust_BusinessUnitProp (REQUIRED by metadata).
     """
     payload: Dict[str, Any] = {
         "externalCode": record["externalCode"],
         # Copy startDate from PRD so Dev matches source system exactly.
         "startDate": record["startDate"],
-        # endDate not insertable — SF sets automatically
+        # endDate not insertable - SF sets automatically
         "status": "A",
         "cust_BusinessUnitProp": parent_bu_code,
     }
 
-    # Name and description — all locales present in the PRD record
+    # Name and description - all locales present in the PRD record
     _copy_locale_fields(payload, record, "name")
     _copy_locale_fields(payload, record, "description")
 
@@ -258,12 +258,12 @@ def build_FOBusinessUnit(
         "externalCode": record["externalCode"],
         # Copy startDate from PRD so Dev matches source system exactly.
         "startDate": record["startDate"],
-        # endDate not insertable — SF sets automatically
+        # endDate not insertable - SF sets automatically
         "status": "A",
         "cust_legalEntityProp": parent_le_code,
     }
 
-    # Name — all locales present in the PRD record
+    # Name - all locales present in the PRD record
     _copy_locale_fields(payload, record, "name")
 
     # Optional fields
@@ -279,19 +279,19 @@ def build_FOCompany(record: Dict[str, Any]) -> Dict[str, Any]:
     Build POST payload for FOCompany (Legal Entity).
 
     country and currency are REQUIRED and must be replicated from PRD.
-    No parent — top of hierarchy.
+    No parent - top of hierarchy.
     """
     payload: Dict[str, Any] = {
         "externalCode": record["externalCode"],
         # Copy startDate from PRD so Dev matches source system exactly.
         "startDate": record["startDate"],
-        # endDate not insertable — SF sets automatically
+        # endDate not insertable - SF sets automatically
         "status": "A",
-        "country": record["country"],    # REQUIRED — raise if missing
-        "currency": record["currency"],  # REQUIRED — raise if missing
+        "country": record["country"],    # REQUIRED - raise if missing
+        "currency": record["currency"],  # REQUIRED - raise if missing
     }
 
-    # Name and description — all locales present in the PRD record
+    # Name and description - all locales present in the PRD record
     _copy_locale_fields(payload, record, "name")
     _copy_locale_fields(payload, record, "description")
 

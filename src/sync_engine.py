@@ -1,5 +1,5 @@
 """
-sync_engine.py — programmatic API and CLI entry point for sf_object_sync.
+sync_engine.py - programmatic API and CLI entry point for sf_object_sync.
 
 Wraps the 7-phase sync pipeline so it can be called from:
   • The web UI (web_ui/app.py) via sync_objects()
@@ -27,7 +27,7 @@ try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    pass  # python-dotenv not installed — env vars must be set externally
+    pass  # python-dotenv not installed - env vars must be set externally
 
 # ── Local imports ─────────────────────────────────────────────────────────────
 _HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -103,7 +103,7 @@ def setup_logging(log_level: str, output_dir: str) -> str:
     fh = logging.FileHandler(log_path, encoding="utf-8")
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(
-        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s — %(message)s")
+        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s - %(message)s")
     )
     root.addHandler(fh)
 
@@ -111,7 +111,7 @@ def setup_logging(log_level: str, output_dir: str) -> str:
                if not isinstance(h, logging.FileHandler)):
         ch = logging.StreamHandler(sys.stdout)
         ch.setLevel(max(numeric_level, logging.INFO))
-        ch.setFormatter(logging.Formatter("[%(levelname)s] %(name)s — %(message)s"))
+        ch.setFormatter(logging.Formatter("[%(levelname)s] %(name)s - %(message)s"))
         root.addHandler(ch)
 
     return log_path
@@ -283,7 +283,7 @@ def _phase2_prd_check(valid_rows, prd_client, audit, prd_cache):
                 cfg["entity_set"], code, expand=parent_nav
             )
         except SFClientError as exc:
-            # Auth failures and connection errors affect every row — surface them
+            # Auth failures and connection errors affect every row - surface them
             # immediately rather than silently treating all rows as PRD_NOT_FOUND.
             if exc.status_code in (401, 403) or exc.status_code is None:
                 raise
@@ -349,7 +349,7 @@ def _phase4_gap_analysis(resolved_chains, dev_client, audit):
         for result in checker.check_chain(chain):
             key = (result.entity_type, result.external_code)
             if key in logged:
-                continue  # already logged from an earlier chain — skip duplicate
+                continue  # already logged from an earlier chain - skip duplicate
             logged.add(key)
             audit.log(phase="gap_check", status=result.status,
                       object_type=result.entity_type, entity_set=result.entity_set,
@@ -362,7 +362,7 @@ def _phase5_dry_run(resolved_chains, gap_results, prd_cache, audit, output_dir,
     import json
     lines = [
         "=" * 70,
-        "  DRY RUN SUMMARY — sf_object_sync",
+        "  DRY RUN SUMMARY - sf_object_sync",
         f"  Generated at: {datetime.now(timezone.utc).isoformat()}",
         "=" * 70, "",
     ]
@@ -568,7 +568,7 @@ def sync_objects(
         try:
             # Phase 1
             _emit(progress_callback, "validation", "Validating input file", 10)
-            _log(f"Phase 1 — Validating input: {input_file_path}")
+            _log(f"Phase 1 - Validating input: {input_file_path}")
             valid_rows = _phase1_validate(input_file_path, audit, validation_errors)
             run_meta.update({
                 "total_rows": len(valid_rows) + len(validation_errors),
@@ -582,7 +582,7 @@ def sync_objects(
 
             # Phase 2
             _emit(progress_callback, "prd_check", "Checking objects in PRD", 25)
-            _log(f"Phase 2 — PRD existence check ({len(valid_rows)} rows)")
+            _log(f"Phase 2 - PRD existence check ({len(valid_rows)} rows)")
             confirmed = _phase2_prd_check(valid_rows, prd_client, audit, prd_cache)
             _log(f"Phase 2 complete: {len(confirmed)} confirmed in PRD")
 
@@ -592,7 +592,7 @@ def sync_objects(
 
             # Phase 3
             _emit(progress_callback, "hierarchy", "Resolving parent hierarchies", 40)
-            _log("Phase 3 — Hierarchy traversal")
+            _log("Phase 3 - Hierarchy traversal")
             resolved_chains, _ = _phase3_resolve_hierarchies(
                 confirmed, prd_client, audit, prd_cache
             )
@@ -604,7 +604,7 @@ def sync_objects(
 
             # Phase 4
             _emit(progress_callback, "gap_analysis", "Checking Dev for gaps", 55)
-            _log("Phase 4 — Dev gap analysis")
+            _log("Phase 4 - Dev gap analysis")
             checker, gap_results = _phase4_gap_analysis(resolved_chains, dev_client, audit)
 
             missing_count = sum(1 for r in gap_results.values() if r.status == DEV_MISSING)
@@ -615,7 +615,7 @@ def sync_objects(
             # Phase 5 or 6
             if dry_run:
                 _emit(progress_callback, "dry_run", "Building dry-run payloads", 70)
-                _log("Phase 5 — Dry run (no writes)")
+                _log("Phase 5 - Dry run (no writes)")
                 summary_path, _ = _phase5_dry_run(
                     resolved_chains, gap_results, prd_cache, audit,
                     output_dir, dev_base_url=dev_client.base_url,
@@ -625,7 +625,7 @@ def sync_objects(
                 _log(f"Dry-run summary: {summary_path}")
             else:
                 _emit(progress_callback, "upload", "Uploading to Dev", 70)
-                _log("Phase 6 — Live upload")
+                _log("Phase 6 - Live upload")
                 _phase6_upload(resolved_chains, gap_results, prd_cache, dev_client, audit)
 
                 # Count outcomes from audit
@@ -655,7 +655,7 @@ def sync_objects(
             prd_client.close()
             dev_client.close()
 
-        # Phase 7 — report (always attempt, even on partial failure)
+        # Phase 7 - report (always attempt, even on partial failure)
         _emit(progress_callback, "report", "Generating Excel report", 90)
         run_meta["completed_at"] = datetime.now(timezone.utc).isoformat()
         try:
@@ -718,7 +718,7 @@ Examples:
     parser.add_argument("--target-env", default=None, metavar="LABEL",
                         help="Human label for target env (informational)")
     parser.add_argument("--dry-run", action="store_true", default=False,
-                        help="Preview only — no writes to target (default: from env/config)")
+                        help="Preview only - no writes to target (default: from env/config)")
     parser.add_argument("--output-dir", default=None, metavar="DIR",
                         help="Output directory for logs/reports (default: ./output)")
     parser.add_argument("--verbose", "-v", action="store_true",

@@ -1,5 +1,5 @@
 """
-Configuration loader — reads config.yaml, validates required fields,
+Configuration loader - reads config.yaml, validates required fields,
 and returns a typed dict for use across all modules.
 """
 

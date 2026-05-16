@@ -1,12 +1,12 @@
 """
-web_ui/app.py — Flask web interface for sf_object_sync.
+web_ui/app.py - Flask web interface for sf_object_sync.
 
 Routes:
-  GET  /                   — Upload / configuration form
-  POST /process            — Handle file upload and start sync
-  GET  /status/<run_id>    — Poll sync progress (JSON)
-  GET  /download_template  — Serve sample input file
-  GET  /results/<run_id>   — Show formatted results page
+  GET  /                   - Upload / configuration form
+  POST /process            - Handle file upload and start sync
+  GET  /status/<run_id>    - Poll sync progress (JSON)
+  GET  /download_template  - Serve sample input file
+  GET  /results/<run_id>   - Show formatted results page
 """
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ def process():
 
     # ── Read form fields ──────────────────────────────────────────────────────
     auth_method = request.form.get("auth_method", "basic")
-    # Checkbox is absent from form data when unchecked — treat presence as True
+    # Checkbox is absent from form data when unchecked - treat presence as True
     dry_run = "dry_run" in request.form
     print(f"Dry Run Mode: {dry_run}")
 
@@ -180,7 +180,7 @@ def process():
 
 @app.route("/status/<run_id>")
 def status_page(run_id: str):
-    """Polling page — auto-redirects to results when done."""
+    """Polling page - auto-redirects to results when done."""
     with _RUNS_LOCK:
         run = _RUNS.get(run_id)
     if run is None:

@@ -1,7 +1,7 @@
 """
 Tests for HierarchyResolver.
 
-All tests mock SFClient — no live API calls.
+All tests mock SFClient - no live API calls.
 """
 
 import json

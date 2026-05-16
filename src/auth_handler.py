@@ -1,11 +1,11 @@
 """
-Authentication handler — builds authenticated SFClient instances based on
+Authentication handler - builds authenticated SFClient instances based on
 the AUTH_METHOD environment variable (or explicit argument).
 
 Supported methods:
-  basic       — HTTP Basic Auth (username + password)
-  oauth       — OAuth 2.0 client credentials (token endpoint)
-  certificate — Mutual TLS with a client certificate + private key
+  basic       - HTTP Basic Auth (username + password)
+  oauth       - OAuth 2.0 client credentials (token endpoint)
+  certificate - Mutual TLS with a client certificate + private key
 """
 
 import logging
@@ -87,7 +87,7 @@ def build_sf_client(
     Build and return an authenticated SFClient for *base_url*.
 
     Args:
-        env         : "source" or "target" — used to look up env-specific vars
+        env         : "source" or "target" - used to look up env-specific vars
         base_url    : OData v2 base URL
         auth_method : override AUTH_METHOD env var ("basic", "oauth", "certificate")
         username    : override username env var (used for basic auth)

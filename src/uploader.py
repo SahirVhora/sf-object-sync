@@ -1,5 +1,5 @@
 """
-Uploader — POSTs missing entities to Dev in strict hierarchy order.
+Uploader - POSTs missing entities to Dev in strict hierarchy order.
 
 Guarded by:
   1. dry_run check (refuses to POST if dry_run=True)
@@ -96,7 +96,7 @@ class Uploader:
         Processes in UPLOAD_ORDER so parents always come before children.
         """
         if self._dry_run:
-            raise RuntimeError("Uploader.run() called with dry_run=True — programming error")
+            raise RuntimeError("Uploader.run() called with dry_run=True - programming error")
 
         # Collect all unique (entity_type, code) pairs across all chains
         all_entities: Dict[Tuple[str, str], List[Tuple[str, str, Dict]]] = {}
@@ -127,7 +127,7 @@ class Uploader:
         cfg = get_config(entity_type)
         entity_set = cfg["entity_set"]
 
-        # Already in Dev — skip
+        # Already in Dev - skip
         if gap_result and gap_result.status == DEV_EXISTS:
             logger.info("SKIP (already exists): %s '%s'", entity_type, code)
             self._audit.log(
