@@ -22,7 +22,7 @@ Input rows specify **Sub Department** or **Department** only. The tool automatic
 
 ```bash
 # 1. Clone and enter the directory
-cd sf_object_sync
+cd SAPSF_ObjectSync
 
 # 2. Install core dependencies
 pip install -r requirements.txt
