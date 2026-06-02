@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAPSF ObjectSync</title>
+  <meta name="description" content="SAP SuccessFactors foundation object synchronisation for PRD to lower tenant sync, with dry-run, audit logs, CLI, Python library, and Flask web UI.">
+  <meta property="og:title" content="SAPSF ObjectSync">
+  <meta property="og:description" content="Synchronise SAP SuccessFactors OM foundation objects from source to target tenants with dry-run safety and detailed output reports.">
+  <meta property="og:image" content="https://sahirvhora.github.io/SAPSF_ObjectSync/preview.svg">
+  <meta property="og:type" content="website">
+  <style>
+    :root { color-scheme: dark; --bg:#07101d; --panel:#101927; --panel2:#152338; --line:#29394f; --text:#edf4ff; --muted:#a6b4c7; --blue:#60a5fa; --green:#34d399; --red:#fb7185; --gold:#fbbf24; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:radial-gradient(circle at 80% 0%, #21446f 0, var(--bg) 42%); color:var(--text); line-height:1.55; }
+    .wrap { max-width:1120px; margin:0 auto; padding:46px 22px; }
+    .hero { display:grid; grid-template-columns:1.1fr .9fr; gap:26px; align-items:center; }
+    .eyebrow { color:var(--green); text-transform:uppercase; letter-spacing:.14em; font-size:13px; font-weight:800; }
+    h1 { margin:12px 0 16px; font-size:clamp(34px,6vw,64px); line-height:1; }
+    .lead { color:var(--muted); font-size:20px; max-width:760px; }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
+    a.btn { color:#06101d; background:var(--green); padding:12px 16px; border-radius:10px; text-decoration:none; font-weight:800; }
+    a.btn.secondary { color:var(--text); background:transparent; border:1px solid var(--line); }
+    .panel, .card { background:linear-gradient(180deg,var(--panel),#0b1422); border:1px solid var(--line); border-radius:18px; padding:20px; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+    .flow { display:grid; gap:10px; }
+    .step { background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px; }
+    .step b { color:var(--blue); }
+    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:30px 0; }
+    .metric strong { display:block; color:var(--gold); font-size:28px; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    h2 { margin:0 0 12px; font-size:22px; }
+    ul { color:var(--muted); padding-left:20px; }
+    .safe { color:var(--green); font-weight:800; }
+    @media (max-width:850px){ .hero,.metrics,.grid{grid-template-columns:1fr} .wrap{padding:30px 16px} }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">SAP SuccessFactors foundation object sync</div>
+        <h1>SAPSF ObjectSync</h1>
+        <p class="lead">Production-grade utility to synchronise SAP SuccessFactors Organisational Management foundation objects from a source tenant to a lower target tenant through OData v2.</p>
+        <div class="actions">
+          <a class="btn" href="https://github.com/SahirVhora/SAPSF_ObjectSync">View GitHub repo</a>
+          <a class="btn secondary" href="https://github.com/SahirVhora/SAPSF_ObjectSync#quick-start">Quick start</a>
+          <a class="btn secondary" href="https://github.com/SahirVhora/SAPSF_ObjectSync/tree/main/sample_data">Sample input</a>
+        </div>
+      </div>
+      <aside class="card flow">
+        <h2>Sync flow</h2>
+        <div class="step"><b>1. Input</b><br>Provide Sub Department or Department codes.</div>
+        <div class="step"><b>2. Resolve</b><br>Automatically walk ancestors to Division, Business Unit, and Legal Entity.</div>
+        <div class="step"><b>3. Preview</b><br><span class="safe">Dry-run first</span> with reports and logs before writes.</div>
+        <div class="step"><b>4. Sync</b><br>Apply controlled updates to the target tenant.</div>
+      </aside>
+    </section>
+
+    <section class="metrics">
+      <div class="panel metric"><strong>5</strong> supported object levels</div>
+      <div class="panel metric"><strong>3</strong> auth modes</div>
+      <div class="panel metric"><strong>2</strong> interfaces: CLI and web UI</div>
+      <div class="panel metric"><strong>1</strong> audit trail per run</div>
+    </section>
+
+    <section class="grid">
+      <div class="panel"><h2>Safety first</h2><ul><li>Dry-run mode defaults to safe preview.</li><li>Credentials stay local in `.env`.</li><li>Output logs and Excel reports support review.</li></ul></div>
+      <div class="panel"><h2>Consultant use case</h2><ul><li>Seed lower tenants after PRD changes.</li><li>Keep Dev and Test aligned.</li><li>Reduce manual foundation object copy work.</li></ul></div>
+      <div class="panel"><h2>Supported stack</h2><ul><li>Python CLI and library.</li><li>Flask web UI.</li><li>Basic, OAuth, and certificate auth options.</li></ul></div>
+    </section>
+  </main>
+</body>
+</html>
