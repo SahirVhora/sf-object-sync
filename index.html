@@ -9,33 +9,71 @@
   <meta property="og:description" content="Synchronise SAP SuccessFactors OM foundation objects from source to target tenants with dry-run safety and detailed output reports.">
   <meta property="og:image" content="https://sahirvhora.github.io/SAPSF_ObjectSync/preview.svg">
   <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://sahirvhora.github.io/SAPSF_ObjectSync/preview.svg">
   <style>
-    :root { color-scheme: dark; --bg:#07101d; --panel:#101927; --panel2:#152338; --line:#29394f; --text:#edf4ff; --muted:#a6b4c7; --blue:#60a5fa; --green:#34d399; --red:#fb7185; --gold:#fbbf24; }
+    :root { color-scheme: dark; --bg:#07101d; --panel:#101927; --panel2:#152338; --line:#29394f; --text:#edf4ff; --muted:#a6b4c7; --blue:#60a5fa; --green:#34d399; --red:#fb7185; --gold:#fbbf24; --purple:#c084fc; }
     * { box-sizing:border-box; }
     body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:radial-gradient(circle at 80% 0%, #21446f 0, var(--bg) 42%); color:var(--text); line-height:1.55; }
-    .wrap { max-width:1120px; margin:0 auto; padding:46px 22px; }
+    .wrap { max-width:1200px; margin:0 auto; padding:46px 22px; }
     .hero { display:grid; grid-template-columns:1.1fr .9fr; gap:26px; align-items:center; }
     .eyebrow { color:var(--green); text-transform:uppercase; letter-spacing:.14em; font-size:13px; font-weight:800; }
     h1 { margin:12px 0 16px; font-size:clamp(34px,6vw,64px); line-height:1; }
+    h2 { margin:0 0 14px; font-size:clamp(20px,3vw,28px); }
+    h3 { font-size:18px; margin:0 0 8px; }
     .lead { color:var(--muted); font-size:20px; max-width:760px; }
     .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
     a.btn { color:#06101d; background:var(--green); padding:12px 16px; border-radius:10px; text-decoration:none; font-weight:800; }
     a.btn.secondary { color:var(--text); background:transparent; border:1px solid var(--line); }
-    .panel, .card { background:linear-gradient(180deg,var(--panel),#0b1422); border:1px solid var(--line); border-radius:18px; padding:20px; box-shadow:0 20px 60px rgba(0,0,0,.25); }
-    .flow { display:grid; gap:10px; }
+    .section { margin-top:36px; }
+    .panel, .card { background:linear-gradient(180deg,var(--panel),#0b1422); border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:30px 0; }
+    .metric strong { display:block; font-size:28px; }
+    .metric .muted-sub { font-size:13px; color:var(--muted); margin-top:4px; display:block; }
+    .grid2 { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:18px; }
+    .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:18px; }
+    ul { padding-left:20px; color:var(--muted); }
+    li { margin-bottom:6px; }
+    .safe { color:var(--green); font-weight:800; }
+    table { width:100%; border-collapse:collapse; background:var(--panel2); border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:13px; }
+    th, td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; }
+    th { color:var(--muted); font-weight:700; background:#09101c; white-space:nowrap; }
+    tr:hover td { background:rgba(96,165,250,.04); }
+    .table-wrap { overflow-x:auto; margin-top:12px; border-radius:12px; }
+    .badge { display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:800; letter-spacing:.04em; }
+    .badge-yes { background:#064e3b33; color:var(--green); border:1px solid var(--green); }
+    .badge-dry { background:#78350f33; color:var(--gold); border:1px solid var(--gold); }
+    .badge-na { background:#1e1b4b33; color:var(--purple); border:1px solid var(--purple); }
     .step { background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px; }
     .step b { color:var(--blue); }
-    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:30px 0; }
-    .metric strong { display:block; color:var(--gold); font-size:28px; }
-    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    h2 { margin:0 0 12px; font-size:22px; }
-    ul { color:var(--muted); padding-left:20px; }
-    .safe { color:var(--green); font-weight:800; }
-    @media (max-width:850px){ .hero,.metrics,.grid{grid-template-columns:1fr} .wrap{padding:30px 16px} }
+    .checklist { list-style:none; padding:0; }
+    .checklist li { padding:7px 0; border-bottom:1px solid var(--line); color:var(--text); font-size:14px; }
+    .checklist li::before { content:"✓  "; color:var(--green); font-weight:800; }
+    .safe-box { border:2px solid var(--green); border-radius:14px; padding:20px; background:rgba(52,211,153,.04); }
+    .safe-box strong { color:var(--green); }
+    .related { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .related a { color:var(--blue); border:1px solid var(--line); border-radius:8px; padding:8px 12px; text-decoration:none; font-size:14px; }
+    .related a:hover { border-color:var(--blue); }
+    .arch { text-align:center; margin:20px 0; }
+    .arch-row { display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap; }
+    .arch-box { padding:12px 16px; border-radius:10px; font-weight:700; font-size:14px; min-width:110px; text-align:center; }
+    .arch-src { background:var(--blue); color:#06101d; }
+    .arch-dry { background:var(--gold); color:#06101d; }
+    .arch-tgt { background:var(--green); color:#06101d; }
+    .arch-log { background:var(--panel2); border:2px solid var(--purple); color:var(--purple); }
+    .arch-arrow { color:var(--muted); font-size:24px; font-weight:800; }
+    .arch-label { color:var(--muted); font-size:12px; margin-top:4px; }
+    .code-block { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:14px; font-family:"Cascadia Code","Fira Code",monospace; font-size:13px; color:var(--muted); overflow-x:auto; white-space:pre; line-height:1.6; }
+    .code-block .cmd { color:var(--green); }
+    .code-block .comment { color:#64748b; }
+    .code-block .output { color:var(--gold); }
+    @media (max-width:860px){ .hero,.grid2,.grid3,.grid4,.metrics{grid-template-columns:1fr} .wrap{padding:30px 16px} }
   </style>
 </head>
 <body>
   <main class="wrap">
+    <!-- ===== HERO ===== -->
     <section class="hero">
       <div>
         <div class="eyebrow">SAP SuccessFactors foundation object sync</div>
@@ -47,26 +85,206 @@
           <a class="btn secondary" href="https://github.com/SahirVhora/SAPSF_ObjectSync/tree/main/sample_data">Sample input</a>
         </div>
       </div>
-      <aside class="card flow">
-        <h2>Sync flow</h2>
-        <div class="step"><b>1. Input</b><br>Provide Sub Department or Department codes.</div>
-        <div class="step"><b>2. Resolve</b><br>Automatically walk ancestors to Division, Business Unit, and Legal Entity.</div>
-        <div class="step"><b>3. Preview</b><br><span class="safe">Dry-run first</span> with reports and logs before writes.</div>
-        <div class="step"><b>4. Sync</b><br>Apply controlled updates to the target tenant.</div>
+      <aside class="card">
+        <h3>Sync flow</h3>
+        <div class="step"><b>1. Input</b> - Provide Sub Department or Department codes</div>
+        <div class="step"><b>2. Resolve</b> - Automatically walk ancestors to Division, Business Unit, and Legal Entity</div>
+        <div class="step"><b>3. Preview</b> - <span class="safe">Dry-run first</span> with reports and logs before writes</div>
+        <div class="step"><b>4. Sync</b> - Apply controlled updates to the target tenant</div>
       </aside>
     </section>
 
+    <!-- ===== METRICS ===== -->
     <section class="metrics">
-      <div class="panel metric"><strong>5</strong> supported object levels</div>
-      <div class="panel metric"><strong>3</strong> auth modes</div>
-      <div class="panel metric"><strong>2</strong> interfaces: CLI and web UI</div>
-      <div class="panel metric"><strong>1</strong> audit trail per run</div>
+      <div class="panel metric"><strong style="color:var(--green)">5</strong><span class="muted-sub">object levels supported</span></div>
+      <div class="panel metric"><strong style="color:var(--blue)">3</strong><span class="muted-sub">auth modes</span></div>
+      <div class="panel metric"><strong style="color:var(--gold)">2</strong><span class="muted-sub">interfaces: CLI + web UI</span></div>
+      <div class="panel metric"><strong style="color:var(--purple)">1</strong><span class="muted-sub">audit trail per run</span></div>
     </section>
 
-    <section class="grid">
-      <div class="panel"><h2>Safety first</h2><ul><li>Dry-run mode defaults to safe preview.</li><li>Credentials stay local in `.env`.</li><li>Output logs and Excel reports support review.</li></ul></div>
-      <div class="panel"><h2>Consultant use case</h2><ul><li>Seed lower tenants after PRD changes.</li><li>Keep Dev and Test aligned.</li><li>Reduce manual foundation object copy work.</li></ul></div>
-      <div class="panel"><h2>Supported stack</h2><ul><li>Python CLI and library.</li><li>Flask web UI.</li><li>Basic, OAuth, and certificate auth options.</li></ul></div>
+    <!-- ===== ARCHITECTURE DIAGRAM ===== -->
+    <section class="section">
+      <h2>Architecture - how sync works</h2>
+      <p style="color:var(--muted);margin-bottom:16px">Every sync run follows the same safe path: resolve ancestors, dry-run preview, review reports, then optionally apply.</p>
+      <div class="card">
+        <div class="arch">
+          <div class="arch-row" style="margin-bottom:12px">
+            <div class="arch-box arch-src">Source PRD<br><span class="arch-label" style="color:#06101d99">OData v2 read</span></div>
+            <div class="arch-arrow">&#8594;</div>
+            <div class="arch-box arch-dry">Dry-Run Engine<br><span class="arch-label" style="color:#06101d99">Resolve + compare</span></div>
+            <div class="arch-arrow">&#8594;</div>
+            <div class="arch-box arch-tgt">Target Dev<br><span class="arch-label" style="color:#06101d99">OData upsert</span></div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-top:8px">
+            <div style="text-align:center">
+              <div style="color:var(--muted);font-size:12px;margin-bottom:4px">Before writes</div>
+              <div class="arch-box arch-dry" style="font-size:12px;min-width:80px">Excel report</div>
+            </div>
+            <div style="text-align:center">
+              <div style="color:var(--muted);font-size:12px;margin-bottom:4px">Audit trail</div>
+              <div class="arch-box arch-log" style="font-size:12px;min-width:80px">Run log</div>
+            </div>
+            <div style="text-align:center">
+              <div style="color:var(--muted);font-size:12px;margin-bottom:4px">Rollback data</div>
+              <div class="arch-box" style="background:var(--panel2);border:2px solid var(--red);color:var(--red);font-size:12px;min-width:80px">Pre-sync snapshot</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DRY-RUN DEMO ===== -->
+    <section class="section">
+      <h2>Dry-run first - see what will change before anything writes</h2>
+      <p style="color:var(--muted)">Every run defaults to dry-run mode. You see the full sync preview, changes, and reports before a single record is touched on the target tenant.</p>
+      <div class="grid2">
+        <div class="card">
+          <h3>Example dry-run output</h3>
+          <div class="code-block"><span class="cmd">$ python -m src.sync_engine --file input.xlsx --dry-run</span>
+
+<span class="output">=== DRY RUN (no writes) ===
+Source: PRD (prod-api.sap.com)
+Target: Dev (dev-api.sap.com)
+
+Resolving hierarchy for: UK HR Ops (Sub Department)
+  Sub Department: UK HR Ops
+    Department: UK HR Central
+      Division: UK Human Resources
+        Business Unit: UK Corporate
+           Legal Entity: UK Ltd (GB01)
+
+Objects to sync: 5
+  CREATE Sub Department UK HR Ops        (missing on target)
+  UPDATE Department UK HR Central         (name differs)
+  UPDATE Division UK Human Resources      (status changed)
+  SKIP  Business Unit UK Corporate        (identical)
+  SKIP  Legal Entity UK Ltd               (identical)
+
+Changes: 3 (2 UPDATE, 1 CREATE)
+Skips:   2 (no change needed)
+
+Reports written to:
+  output/sync_report_20260515_143002.xlsx
+  output/sync_20260515_143002.log
+
+<span class="comment"># Dry-run succeeded. Review reports, then re-run with --no-dry-run to apply.</span></span></div>
+        </div>
+        <div class="card">
+          <h3>What you get</h3>
+          <ul style="padding-left:20px">
+            <li><b>Object-by-object preview</b> - see exactly which records will be created, updated, or skipped</li>
+            <li><b>Change detail</b> - which fields differ between source and target</li>
+            <li><b>Excel report</b> - downloadable workbook with colour-coded rows and summary sheets</li>
+            <li><b>Audit log</b> - timestamped, append-only run log with all decisions</li>
+            <li><b>Zero risk</b> - no writes happen in dry-run mode. Guaranteed.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== OBJECT COVERAGE MATRIX ===== -->
+    <section class="section">
+      <h2>Object coverage matrix</h2>
+      <p style="color:var(--muted)">Foundation objects supported for sync, with OData entities, dependencies, and operational notes.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Level</th><th>Canonical Name</th><th>OData Entity Set</th><th>Dependencies</th><th>Create</th><th>Update</th><th>Risk notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>5</td><td>Sub Department</td><td><code>cust_SubDepartment</code></td><td>Department must exist on target</td><td><span class="badge badge-yes">YES</span></td><td><span class="badge badge-yes">YES</span></td><td>Custom object; entity set name varies by tenant</td>
+            </tr>
+            <tr>
+              <td>4</td><td>Department</td><td><code>FODepartment</code></td><td>Division must exist on target</td><td><span class="badge badge-yes">YES</span></td><td><span class="badge badge-yes">YES</span></td><td>Standard FO; name and status fields tracked</td>
+            </tr>
+            <tr>
+              <td>3</td><td>Division</td><td><code>FODivision</code></td><td>Business Unit must exist; Division-BU junction must align</td><td><span class="badge badge-yes">YES</span></td><td><span class="badge badge-yes">YES</span></td><td>Junction table sync required for BU linkage</td>
+            </tr>
+            <tr>
+              <td>2</td><td>Business Unit</td><td><code>FOBusinessUnit</code></td><td>Legal Entity must exist; BU-LE junction must align</td><td><span class="badge badge-dry">DRY-RUN</span></td><td><span class="badge badge-yes">YES</span></td><td>Create via API requires careful parent resolution</td>
+            </tr>
+            <tr>
+              <td>1</td><td>Legal Entity</td><td><code>FOCompany</code></td><td>None (leaf-level; no parent FO)</td><td><span class="badge badge-dry">DRY-RUN</span></td><td><span class="badge badge-yes">YES</span></td><td>Rarely synced; typically exists in all tenants already</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== SAFETY & ROLLBACK ===== -->
+    <section class="section">
+      <div class="safe-box">
+        <h2>&#128737; Safety checklist - before, during, and after a sync</h2>
+        <p style="color:var(--muted);margin-bottom:16px">These steps are built into the tool's workflow. Follow them for every sync run.</p>
+        <div class="grid2">
+          <div>
+            <h3 style="color:var(--blue)">Before sync</h3>
+            <ul class="checklist">
+              <li>Verify target tenant is a lower environment (Dev/Test), never PRD</li>
+              <li>Confirm source and target credentials in <code>.env</code> are correct</li>
+              <li>Run <code>--dry-run</code> first and review the Excel report</li>
+              <li>Check the run log for any unexpected SKIP or ERROR lines</li>
+              <li>Validate ancestor resolution is correct for all input rows</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="color:var(--gold)">During sync</h3>
+            <ul class="checklist">
+              <li>Monitor the live log output for CREATE/UPDATE confirmations</li>
+              <li>Watch for HTTP errors or OData validation failures mid-run</li>
+              <li>If a mid-sync error occurs, the tool stops and logs the failure point</li>
+              <li>Partial syncs are logged; you can resume or roll back</li>
+            </ul>
+          </div>
+        </div>
+        <div class="grid2" style="margin-top:14px">
+          <div>
+            <h3 style="color:var(--green)">After sync</h3>
+            <ul class="checklist">
+              <li>Open the Excel report and confirm all rows are green (synced)</li>
+              <li>Spot-check 2-3 objects on the target tenant via SF UI</li>
+              <li>Archive the run log and Excel report for audit evidence</li>
+              <li>Run the PIC (Position Integrity Checker) if positions reference these objects</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="color:var(--red)">If you need to roll back</h3>
+            <ul class="checklist">
+              <li>Use the pre-sync snapshot data from the log to identify affected records</li>
+              <li>For UPDATEs: the old values are recorded in the run log</li>
+              <li>For CREATEs: delete the newly created object via SF UI or OData</li>
+              <li>Re-run ObjectSync with the original target data or restore from SF backup</li>
+              <li>Always test rollback in Dev before attempting in Test</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== USE CASES ===== -->
+    <section class="section">
+      <h2>When to use it</h2>
+      <div class="grid3">
+        <div class="panel"><h3>Post-PRD change</h3><ul><li>PRD foundation objects were updated</li><li>Dev environments need the same structure</li><li>Manual copy would be slow and error-prone</li></ul></div>
+        <div class="panel"><h3>Pre-release alignment</h3><ul><li>Align Dev structure to PRD before testing</li><li>Ensure test scenarios use current hierarchy</li><li>Catch missing objects before configuration build</li></ul></div>
+        <div class="panel"><h3>Consultant onboarding</h3><ul><li>New team member needs representative Dev data</li><li>Seed a fresh Dev tenant with current structure</li><li>Reduce setup time from hours to minutes</li></ul></div>
+      </div>
+    </section>
+
+    <!-- ===== RELATED TOOLS ===== -->
+    <section class="section">
+      <h2>SAP SuccessFactors toolkit</h2>
+      <p style="color:var(--muted)">This tool is part of the <a href="https://sahirvhora.github.io/sf-compass/" style="color:var(--blue)">SF Compass</a> consulting suite.</p>
+      <div class="related">
+        <a href="https://sahirvhora.github.io/sf-compass/">SF Compass - Consulting hub</a>
+        <a href="https://sahirvhora.github.io/sf-release-update/">SF Release Update - Release tracker</a>
+        <a href="https://sahirvhora.github.io/sf-pay-transparency/">SF Pay Transparency - EU directive readiness</a>
+        <a href="https://sahirvhora.github.io/sf-position-integrity-checker/">Position Integrity Checker - Data health</a>
+        <a href="https://sahirvhora.github.io/sf-value-navigator/">Value Navigator - Business case</a>
+      </div>
     </section>
   </main>
 </body>
