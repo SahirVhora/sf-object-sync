@@ -1,0 +1,27 @@
+{
+  "d": {
+    "results": [
+      {
+        "externalCode": "10012042",
+        "startDate": "/Date(1577836800000)/",
+        "endDate": "/Date(253370764800000)/",
+        "status": "A",
+        "name_defaultValue": "European Div",
+        "name_en_US": "European Div US",
+        "name_en_GB": "European Div GB",
+        "name_pl_PL": "Europejski Dzial",
+        "description_defaultValue": "European Ops",
+        "cust_BusinessUnit": {
+          "results": [
+            {
+              "externalCode": "GF00006",
+              "startDate": "/Date(1577836800000)/",
+              "endDate": "/Date(253370764800000)/",
+              "status": "A"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

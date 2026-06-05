@@ -44,8 +44,6 @@ ENV/
 .pytest_cache/
 .coverage
 htmlcov/
-tests/mock_responses/
-**/mock_responses/
 tests/__init__.py
 
 # Output (runtime artefacts - never commit)

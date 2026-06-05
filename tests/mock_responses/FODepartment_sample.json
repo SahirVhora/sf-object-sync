@@ -1,0 +1,28 @@
+{
+  "d": {
+    "results": [
+      {
+        "externalCode": "10016236",
+        "startDate": "/Date(1577836800000)/",
+        "endDate": "/Date(253370764800000)/",
+        "status": "A",
+        "name_defaultValue": "Finance Dept",
+        "name_en_US": "Finance Dept US",
+        "name_en_GB": "Finance Dept GB",
+        "name_pl_PL": "Dzial Finansowy",
+        "description_defaultValue": "Finance",
+        "description_en_US": "Finance US",
+        "cust_Division": {
+          "results": [
+            {
+              "externalCode": "10012042",
+              "startDate": "/Date(1577836800000)/",
+              "endDate": "/Date(253370764800000)/",
+              "status": "A"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

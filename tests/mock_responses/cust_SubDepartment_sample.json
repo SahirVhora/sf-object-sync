@@ -1,0 +1,28 @@
+{
+  "d": {
+    "results": [
+      {
+        "externalCode": "10000073",
+        "effectiveStartDate": "/Date(1577836800000)/",
+        "mdfSystemEffectiveEndDate": "/Date(253370764800000)/",
+        "mdfSystemStatus": "A",
+        "externalName_defaultValue": "Test Sub Dept",
+        "externalName_en_US": "Test Sub Dept US",
+        "externalName_en_GB": "Test Sub Dept GB",
+        "externalName_pl_PL": "Testowy Poddzial",
+        "cust_description_defaultValue": "A test sub dept",
+        "cust_description_en_US": "Test US desc",
+        "cust_Department": {
+          "results": [
+            {
+              "externalCode": "10016236",
+              "startDate": "/Date(1577836800000)/",
+              "endDate": "/Date(253370764800000)/",
+              "status": "A"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "d": {
+    "results": [
+      {
+        "externalCode": "LE_CORP",
+        "startDate": "/Date(1577836800000)/",
+        "endDate": "/Date(253370764800000)/",
+        "status": "A",
+        "country": "GBR",
+        "currency": "GBP",
+        "name_defaultValue": "Corp LE",
+        "name_en_US": "Corp LE US",
+        "name_en_GB": "Corp LE GB",
+        "name_pl_PL": "Podmiot Corp",
+        "description_defaultValue": "Main Corp LE"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "d": {
+    "results": [
+      {
+        "externalCode": "GF00006",
+        "startDate": "/Date(1577836800000)/",
+        "endDate": "/Date(253370764800000)/",
+        "status": "A",
+        "name_defaultValue": "Global Finance BU",
+        "name_en_US": "Global Finance BU US",
+        "name_en_GB": "Global Finance BU GB",
+        "name_pl_PL": "Globalny Dzial Finansowy",
+        "cust_businessUnitType": "FINANCIAL",
+        "cust_legalEntity": {
+          "results": [
+            {
+              "externalCode": "LE_CORP",
+              "startDate": "/Date(1577836800000)/",
+              "endDate": "/Date(253370764800000)/",
+              "status": "A",
+              "country": "GBR",
+              "currency": "GBP"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
