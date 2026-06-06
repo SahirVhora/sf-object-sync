@@ -43,6 +43,14 @@ from src.sync_engine import sync_objects
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24).hex())
 
+
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 OUTPUT_DIR = os.path.abspath(os.path.join(_ROOT, "output"))
 SAMPLE_FILE = os.path.join(_ROOT, "sample_data", "foundation_objects_template.xlsx")
