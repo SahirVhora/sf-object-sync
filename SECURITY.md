@@ -10,9 +10,9 @@ SAPSF_ObjectSync is a local Flask tool for syncing foundation objects between SA
 
 ## Secrets
 
-- Store credentials only in `.env` (never commit it — `.env.example` is provided as a template).
+- Store credentials only in `.env` (never commit it - `.env.example` is provided as a template).
 - `FLASK_SECRET_KEY` should be a strong random string.
-- OAuth certificates in `credentials/` are ignored by `.gitignore` — verify they are never committed.
+- OAuth certificates in `credentials/` are ignored by `.gitignore` - verify they are never committed.
 
 ## Security Headers
 
