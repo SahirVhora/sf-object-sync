@@ -1,28 +1,35 @@
-# Security Notes
+# Security Policy
 
-SAPSF_ObjectSync is a local Flask tool for syncing foundation objects between SAP SuccessFactors tenants. It handles source and target tenant credentials.
+## Supported Versions
 
-## Before Sharing
+This project is actively maintained. Security updates are applied to the latest release.
 
-- Remove any uploaded files from `web_ui/uploads/`.
-- Do not publish screenshots containing tenant URLs, usernames, or sync results with real data.
-- Use demo data for public demos.
+## Reporting a Vulnerability
 
-## Secrets
+If you discover a security vulnerability, please report it responsibly.
 
-- Store credentials only in `.env` (never commit it - `.env.example` is provided as a template).
-- `FLASK_SECRET_KEY` should be a strong random string.
-- OAuth certificates in `credentials/` are ignored by `.gitignore` - verify they are never committed.
+**Do NOT open a public issue.**
 
-## Security Headers
+Instead, email [sahir.vhora@gmail.com](mailto:sahir.vhora@gmail.com) with:
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if any)
 
-The app includes basic security headers via Flask `after_request`:
-- `X-Frame-Options: DENY`
-- `X-Content-Type-Options: nosniff`
-- `Referrer-Policy: strict-origin-when-cross-origin`
+## What to Expect
 
-## Data Handling
+- Acknowledgement within 48 hours
+- Assessment of severity and impact
+- Timeline for fix disclosure
+- Credit in release notes (unless you prefer anonymity)
 
-- Uploaded Excel/CSV files may contain organisational data.
-- Sync reports and output Excel files may list all foundation objects and their values.
-- Treat all output as sensitive when generated against production tenants.
+## Security Best Practices
+
+- Keep dependencies updated (Dependabot enabled)
+- Never commit secrets, API keys, or credentials
+- Use environment variables for configuration
+- Review PRs for security implications
+
+## Security Updates
+
+Security fixes are released as patch versions. Subscribe to releases to be notified of updates.
