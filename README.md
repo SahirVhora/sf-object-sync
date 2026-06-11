@@ -1,4 +1,4 @@
-# SAPSF_ObjectSync
+# sf-object-sync
 
 Production-grade tool to synchronise SAP SuccessFactors Organisational Management (OM) foundation objects from a **PRD** tenant to a **Dev** (lower) tenant via **OData v2 APIs**.
 
@@ -22,7 +22,7 @@ Input rows specify **Sub Department** or **Department** only. The tool automatic
 
 ```bash
 # 1. Clone and enter the directory
-cd SAPSF_ObjectSync
+cd sf-object-sync
 
 # 2. Install core dependencies
 pip install -r requirements.txt
