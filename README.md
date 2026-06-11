@@ -362,3 +362,14 @@ Start with SF Compass for the full hub: https://sahirvhora.github.io/sf-compass/
 | SF Position Integrity Checker | Position hierarchy, incumbency, and EC data-quality validation |
 | SAPSF ObjectSync | Controlled foundation-object synchronisation between SF environments |
 
+---
+
+## Part of the SF Compass Suite
+
+One of 10 free, open tools for SAP SuccessFactors consultants. Explore the full suite at [SF Compass](https://sahirvhora.github.io/sf-compass/).
+
+Related tools:
+
+- [Config Compare](https://github.com/SahirVhora/sf-config-compare) - Compare metadata and picklists across tenants
+- [Position Integrity Checker](https://github.com/SahirVhora/sf-position-integrity-checker) - Validate position data integrity
+- [Config Debt Radar](https://github.com/SahirVhora/sf-config-debt-radar) - Scan EC configuration debt - CLI, dashboard, MCP server
