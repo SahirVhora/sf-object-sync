@@ -381,6 +381,41 @@ code {
   border-bottom: 1px solid var(--color-border);
 }
 
+.connection-test-panel {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.connection-test-result {
+  flex: 1 1 340px;
+  white-space: pre-line;
+  border-radius: var(--radius);
+  padding: .55rem .75rem;
+  font-size: .86rem;
+  line-height: 1.45;
+  border: 1px solid var(--color-border);
+}
+.connection-test-result[hidden] { display: none; }
+.connection-test-result.is-pending {
+  background: var(--color-skip-bg);
+  color: var(--color-skip);
+}
+.connection-test-result.is-success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: #b0dfc0;
+}
+.connection-test-result.is-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: #efb4ae;
+}
+
 /* ── Settings saved indicator ─────────────────────────────────────────────── */
 .settings-saved-indicator {
   color: var(--color-success);

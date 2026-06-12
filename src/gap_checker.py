@@ -92,13 +92,13 @@ class GapChecker:
         try:
             records = self._client.get_entity_by_code(entity_set, code)
         except SFClientError as exc:
-            logger.warning(
-                "Dev check error for %s '%s': %s - treating as MISSING",
+            logger.error(
+                "Dev check error for %s '%s': %s - aborting to avoid unsafe create",
                 entity_type,
                 code,
                 exc,
             )
-            records = []
+            raise
 
         if not records:
             return GapCheckResult(entity_type, code, entity_set, DEV_MISSING)

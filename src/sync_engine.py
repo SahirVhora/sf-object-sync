@@ -205,14 +205,21 @@ def _phase1_validate(input_path: str, audit: AuditLogger, errors: list) -> list:
         raise FileNotFoundError(f"Input file not found: {input_path}")
 
     wb = openpyxl.load_workbook(input_path, read_only=True, data_only=True)
-    ws = wb.active
-    rows_iter = iter(ws.rows)
-
+    ws = None
+    rows_iter = None
     header_row = None
-    for row in rows_iter:
-        vals = [str(c.value or "").strip().lower() for c in row]
-        if "object" in vals and "code" in vals:
-            header_row = vals
+    header_row_number = 0
+    for candidate in wb.worksheets:
+        candidate_rows = iter(candidate.rows)
+        for row_number, row in enumerate(candidate_rows, start=1):
+            vals = [str(c.value or "").strip().lower() for c in row]
+            if "object" in vals and "code" in vals:
+                ws = candidate
+                rows_iter = candidate_rows
+                header_row = vals
+                header_row_number = row_number
+                break
+        if header_row is not None:
             break
 
     if header_row is None:
@@ -222,7 +229,7 @@ def _phase1_validate(input_path: str, audit: AuditLogger, errors: list) -> list:
     code_idx = header_row.index("code")
 
     valid_rows: list = []
-    row_number = 1
+    row_number = header_row_number
 
     for row in rows_iter:
         row_number += 1

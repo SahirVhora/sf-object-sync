@@ -113,6 +113,25 @@ class TestPhase1Validate(unittest.TestCase):
         with self.assertRaises(ValueError):
             _phase1_validate(path, audit, [])
 
+    def test_header_can_be_on_non_active_sheet(self):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Summary"
+        ws.append(["Foo", "Bar"])
+        input_ws = wb.create_sheet("Input")
+        input_ws.append(["Object", "Code"])
+        input_ws.append(["Department", "DEP-001"])
+        wb.active = 0
+        path = os.path.join(self.tmp, "second_sheet_input.xlsx")
+        wb.save(path)
+
+        audit = self._audit()
+        errors = []
+        rows = _phase1_validate(path, audit, errors)
+
+        self.assertEqual(rows, [{"object_type": "Department", "code": "DEP-001"}])
+        self.assertEqual(errors, [])
+
 
 # ── config_from_env tests ─────────────────────────────────────────────────────
 

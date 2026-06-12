@@ -110,15 +110,18 @@ class TestGapChecker:
         assert results[0].status == DEV_EXISTS
         assert results[1].status == DEV_MISSING
 
-    def test_api_error_treated_as_missing(self):
+    def test_api_error_aborts_gap_check(self):
         client = MagicMock(spec=SFClient)
-        client.get_entity_by_code.side_effect = SFClientError("Connection refused")
+        client.get_entity_by_code.side_effect = SFClientError(
+            "GET FODivision returned HTTP 401",
+            status_code=401,
+        )
 
         checker = GapChecker(client)
         chain = [("Division", "10012042", _record("10012042"))]
-        results = checker.check_chain(chain)
 
-        assert results[0].status == DEV_MISSING
+        with pytest.raises(SFClientError):
+            checker.check_chain(chain)
 
     def test_entity_set_in_result(self, mock_dev_empty):
         checker = GapChecker(mock_dev_empty)

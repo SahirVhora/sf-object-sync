@@ -33,6 +33,7 @@ function toggleAuthFields(method) {
   document.querySelectorAll('.auth-fields').forEach(el => {
     el.hidden = el.dataset.auth !== method;
   });
+  clearConnectionResult();
 }
 
 // ── Modal open / close ────────────────────────────────────────────────────────
@@ -44,6 +45,14 @@ function openSettings() {
 function closeSettings() {
   document.getElementById('settings-overlay').hidden = true;
   document.body.style.overflow = '';
+}
+
+function clearConnectionResult() {
+  const result = document.getElementById('connection-test-result');
+  if (!result) return;
+  result.hidden = true;
+  result.className = 'connection-test-result';
+  result.textContent = '';
 }
 
 // Close on overlay backdrop click
@@ -76,6 +85,69 @@ function saveSettings() {
   setTimeout(function () {
     closeSettings();
   }, 600);
+}
+
+function collectCurrentSettings() {
+  const settings = {};
+  Object.keys(FIELD_MAP).forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) settings[id] = el.value;
+  });
+  return settings;
+}
+
+function renderConnectionResult(payload) {
+  const result = document.getElementById('connection-test-result');
+  if (!result) return;
+
+  const source = payload.source || {};
+  const target = payload.target || {};
+  const sourceLabel = source.ok ? 'Source: Connected' : `Source: ${source.message || 'Failed'}`;
+  const targetLabel = target.ok ? 'Target: Connected' : `Target: ${target.message || 'Failed'}`;
+
+  result.hidden = false;
+  result.className = `connection-test-result ${payload.ok ? 'is-success' : 'is-error'}`;
+  result.textContent = `${sourceLabel}\n${targetLabel}`;
+}
+
+async function testConnection() {
+  const button = document.getElementById('test-connection-btn');
+  const result = document.getElementById('connection-test-result');
+  const settings = collectCurrentSettings();
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Testing...';
+  }
+  if (result) {
+    result.hidden = false;
+    result.className = 'connection-test-result is-pending';
+    result.textContent = 'Testing Source and Target connections...';
+  }
+
+  try {
+    const response = await fetch('/api/test_connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || 'Connection test failed.');
+    }
+    renderConnectionResult(payload);
+  } catch (err) {
+    if (result) {
+      result.hidden = false;
+      result.className = 'connection-test-result is-error';
+      result.textContent = err.message || 'Connection test failed.';
+    }
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Test Connection';
+    }
+  }
 }
 
 // ── Clear saved settings ──────────────────────────────────────────────────────

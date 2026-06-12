@@ -37,6 +37,8 @@ except ImportError:
     pass
 
 from src.sync_engine import sync_objects
+from src.sf_client import SFClient, SFClientError
+from src.auth_handler import build_sf_client, AuthError
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -68,11 +70,90 @@ def _allowed(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def _normalise_odata_url(raw_url: str) -> str:
+    """Accept either tenant host or full OData v2 URL."""
+    url = (raw_url or "").strip().rstrip("/")
+    if not url:
+        return ""
+    if url.lower().endswith("/odata/v2"):
+        return url
+    return f"{url}/odata/v2"
+
+
+def _probe_connection(client: SFClient) -> tuple[bool, str]:
+    """Check credentials by reading a tiny page from a common foundation object."""
+    url = f"{client.base_url}/FOCompany"
+    response = client._request_with_retry(
+        "GET",
+        url,
+        params={"$top": "1", "$format": "json"},
+    )
+    if response.status_code == 200:
+        return True, "Connection successful"
+    detail = response.text[:500].strip() or f"HTTP {response.status_code}"
+    return False, f"HTTP {response.status_code}: {detail}"
+
+
+def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    prefix = "source" if env_name == "source" else "target"
+    label = "Source" if env_name == "source" else "Target"
+    base_url = _normalise_odata_url(data.get(f"{prefix}_url") or "")
+    if not base_url:
+        return {"ok": False, "message": f"{label} OData URL is required."}
+
+    previous_env = dict(os.environ)
+    client = None
+    try:
+        if auth_method == "basic":
+            username = (data.get(f"{prefix}_user") or "").strip()
+            password = (data.get(f"{prefix}_password") or "").strip()
+            if not username or not password:
+                return {"ok": False, "message": f"{label} username and password are required."}
+            client = SFClient(base_url, username, password, timeout_sec=15)
+        else:
+            env_prefix = "SF_SOURCE" if env_name == "source" else "SF_TARGET"
+            os.environ[f"{env_prefix}_CLIENT_ID"] = (data.get(f"{prefix}_client_id") or "").strip()
+            os.environ[f"{env_prefix}_CLIENT_SECRET"] = (data.get(f"{prefix}_client_secret") or "").strip()
+            os.environ[f"{env_prefix}_TOKEN_URL"] = (data.get(f"{prefix}_token_url") or "").strip()
+            os.environ[f"{env_prefix}_CERT_PATH"] = (data.get(f"{prefix}_cert_path") or "").strip()
+            os.environ[f"{env_prefix}_KEY_PATH"] = (data.get(f"{prefix}_key_path") or "").strip()
+            os.environ["AUTH_METHOD"] = auth_method
+            client = build_sf_client(env_name, base_url, timeout_sec=15)
+
+        ok, message = _probe_connection(client)
+        return {"ok": ok, "message": message}
+    except (AuthError, SFClientError) as exc:
+        return {"ok": False, "message": str(exc)}
+    except Exception as exc:
+        return {"ok": False, "message": f"Connection test failed: {exc}"}
+    finally:
+        if client is not None:
+            client.close()
+        os.environ.clear()
+        os.environ.update(previous_env)
+
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/api/test_connection", methods=["POST"])
+def test_connection():
+    data = request.get_json(silent=True) or {}
+    auth_method = (data.get("auth_method") or "basic").strip().lower()
+    if auth_method not in {"basic", "oauth", "certificate"}:
+        return jsonify({"ok": False, "error": "Unsupported authentication method."}), 400
+
+    source = _test_one_connection("source", auth_method, data)
+    target = _test_one_connection("target", auth_method, data)
+    return jsonify({
+        "ok": source["ok"] and target["ok"],
+        "source": source,
+        "target": target,
+    })
 
 
 @app.route("/process", methods=["POST"])
@@ -131,6 +212,9 @@ def process():
     if not source_url or not target_url:
         return render_template("index.html",
                                error="Source and Target URLs are required."), 400
+
+    source_url = _normalise_odata_url(source_url)
+    target_url = _normalise_odata_url(target_url)
 
     # Expose OAuth/cert credentials as env vars so auth_handler can pick them up
     os.environ["SF_SOURCE_CLIENT_ID"]     = source_client_id     or os.getenv("SF_SOURCE_CLIENT_ID", "")
