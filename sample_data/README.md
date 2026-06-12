@@ -22,7 +22,7 @@ The input file requires **exactly two columns** (case-insensitive, extra whitesp
 
 ### Rules
 
-- **Header row** must contain both `Object` and `Code` (any column order, any row - the tool scans for the first row containing both).
+- **Header row** must contain both `Object` and `Code` (any column order, any row, any worksheet - the tool scans for the first row containing both).
 - **Blank rows** are silently skipped.
 - **Object type** matching is case-insensitive: `sub department`, `Sub Department`, `SUB DEPARTMENT` are all accepted.
 - **Codes** must be alphanumeric (hyphens `-` and underscores `_` are also allowed). Leading/trailing spaces are trimmed.

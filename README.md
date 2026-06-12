@@ -43,6 +43,7 @@ python -m src.sync_engine --file sample_data/foundation_objects_template.xlsx --
 pip install -r requirements-web.txt
 python web_ui/app.py
 # Then open http://127.0.0.1:5000
+# In Settings, enter Source + Target credentials and click Test Connection first.
 
 # 6. Check output/sync_*.log for the run log
 #    Check output/sync_report_*.xlsx for the full Excel report
@@ -106,6 +107,8 @@ cp .env.example .env
 
 > **Security:** Never commit `.env` to version control. It is listed in `.gitignore`.
 
+> **URL format:** The web UI accepts either `https://<host>` or `https://<host>/odata/v2` and normalises it to the OData v2 base URL. CLI and Python API callers should pass the full `/odata/v2` URL.
+
 ---
 
 ## Installation
@@ -153,9 +156,21 @@ The UI provides:
 - File upload (`.xlsx` / `.csv`)
 - Auth method dropdown (Basic / OAuth / Certificate)
 - Source + Target environment URL fields (falls back to `.env` if left blank)
+- Test Connection button for Source and Target credentials before running sync
 - Dry-run checkbox
 - Real-time progress bar
 - Results page with colour-coded log and Excel report download
+
+Recommended web UI flow:
+
+1. Open Settings.
+2. Enter Source (PRD) and Target (Dev) details.
+3. Click **Test Connection** and confirm both sides connect successfully.
+4. Save Settings.
+5. Run a dry run and review the report.
+6. Untick Dry Run only when you are ready to upload missing objects to Target.
+
+If the app was already running before an update, restart `python web_ui/app.py` so the browser uses the latest UI and API route.
 
 ---
 
@@ -235,6 +250,7 @@ sf_object_sync/
 │   │   ├── status.html        # Progress polling page
 │   │   └── results.html       # Sync results + log viewer
 │   └── static/
+│       ├── script.js          # Settings persistence + connection test UI
 │       └── style.css
 ├── output/                    # Runtime artefacts (git-ignored)
 └── tests/
@@ -243,6 +259,7 @@ sf_object_sync/
     ├── test_validator.py
     ├── test_hierarchy_resolver.py
     ├── test_gap_checker.py
+    ├── test_web_ui.py
     └── test_payload_builder.py
 ```
 
@@ -311,6 +328,8 @@ All tests mock `SFClient` - no live API calls are made.
 ## Retry & Rate Limiting
 
 The HTTP client retries automatically on HTTP `429`, `500`, `502`, `503`, `504` with exponential back-off: **1s → 2s → 4s** (3 attempts total). Adjust `REQUEST_TIMEOUT_SEC` in `.env` if your tenant is slow.
+
+Dev gap checks fail closed: if the tool cannot query Target because of authentication, network, or API errors, it aborts instead of treating objects as missing. This avoids unsafe live-mode creates when credentials are expired or invalid.
 
 ---
 
