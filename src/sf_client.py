@@ -26,6 +26,17 @@ MAX_RETRIES = 3
 BACKOFF_SECONDS = [1, 2, 4]  # indexed by attempt number (0-based)
 
 
+def _odata_escape(value: str) -> str:
+    """Escape a string literal for an OData v2 $filter.
+
+    OData v2 single-quoted literals escape an embedded quote by doubling it
+    ('' ). Without this, a value containing a single quote breaks the filter
+    syntax (OData injection). For normal SuccessFactors codes (alphanumeric,
+    no quotes) the output is identical to the input, so behaviour is unchanged.
+    """
+    return str(value).replace("'", "''")
+
+
 class SFClientError(Exception):
     """Raised when the API returns an unrecoverable error."""
 
@@ -147,7 +158,7 @@ class SFClient:
         """
         url = self._url(entity_set)
         params: Dict[str, str] = {
-            "$filter": f"externalCode eq '{external_code}'",
+            "$filter": f"externalCode eq '{_odata_escape(external_code)}'",
             "$format": "json",
             "$top": "100",
         }
