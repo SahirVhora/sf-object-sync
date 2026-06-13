@@ -1,0 +1,15 @@
+# Pinned, reproducible dependency set for sf-object-sync.
+#
+# requirements.txt keeps flexible lower bounds for normal installs; this lock
+# captures the exact versions the test suite is green against, for when you
+# need a byte-for-byte reproducible environment (CI, demos, fresh machines):
+#
+#     pip install -r requirements.lock
+#
+# Regenerate after intentional upgrades with: pip freeze > requirements.lock
+requests==2.31.0
+openpyxl==3.1.5
+colorama==0.4.6
+pyyaml==6.0.1
+python-dotenv==1.0.1
+pytest==9.0.2
