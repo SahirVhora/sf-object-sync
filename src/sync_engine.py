@@ -207,7 +207,6 @@ def _phase1_validate(input_path: str, audit: AuditLogger, errors: list) -> list:
         raise FileNotFoundError(f"Input file not found: {input_path}")
 
     wb = openpyxl.load_workbook(input_path, read_only=True, data_only=True)
-    ws = None
     rows_iter = None
     header_row = None
     header_row_number = 0
@@ -519,7 +518,7 @@ def sync_objects(
         }
     """
     os.makedirs(output_dir, exist_ok=True)
-    log_path = setup_logging(log_level, output_dir)
+    setup_logging(log_level, output_dir)
     log_lines: List[str] = []
 
     def _log(msg: str) -> None:

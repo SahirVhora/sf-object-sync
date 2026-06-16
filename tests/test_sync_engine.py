@@ -18,12 +18,14 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from src.sync_engine import (
+# Imports below must follow the sys.path bootstrap so the 'src' package
+# is resolvable when this file is run directly.
+from src.sync_engine import (  # noqa: E402
     sync_objects,
     config_from_env,
     _phase1_validate,
 )
-from src.audit_logger import AuditLogger
+from src.audit_logger import AuditLogger  # noqa: E402
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
