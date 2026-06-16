@@ -6,7 +6,8 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from web_ui.app import app
+# Import after sys.path bootstrap so 'web_ui.app' is resolvable.
+from web_ui.app import app  # noqa: E402
 
 
 def test_connection_api_reports_source_and_target_success():

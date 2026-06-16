@@ -12,6 +12,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.audit_logger import AuditLogger, VALIDATION_FAILED
+from sf_object_sync import phase1_validate_input, _normalise_object_type
 
 
 def _make_xlsx(rows, headers=("Object", "Code")):
@@ -31,10 +32,6 @@ def _make_xlsx(rows, headers=("Object", "Code")):
 def audit(tmp_path):
     with AuditLogger(str(tmp_path), dry_run=True) as al:
         yield al
-
-
-# Import after sys.path fix
-from sf_object_sync import phase1_validate_input, _normalise_object_type
 
 
 class TestNormaliseObjectType:
