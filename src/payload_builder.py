@@ -12,7 +12,6 @@ Rules:
 
 import logging
 import re
-from calendar import timegm
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Optional
 
@@ -108,20 +107,6 @@ def _copy_locale_fields(
             continue
 
         payload[field] = val
-# Add mdfstatus
-def _resolve_mdf_status(record: Dict[str, Any]) -> str:
-    status = record.get("mdfSystemStatus", "A")
-
-    if status not in ("A", "I"):
-        logger.warning(
-            "Unexpected mdfSystemStatus '%s' for %s – defaulting to 'A'",
-            status,
-            record.get("externalCode"),
-        )
-        return "A"
-
-    return status
-
 # ---------------------------------------------------------------------------
 # Per-entity payload builders
 # ---------------------------------------------------------------------------
@@ -162,7 +147,6 @@ def build_cust_SubDepartment(
         "externalCode": record["externalCode"],
         # Use the PRD effectiveStartDate so Dev matches the source system exactly.
         "effectiveStartDate": record["effectiveStartDate"],
-        "mdfSystemStatus": "A",
         "mdfSystemStatus": record.get("mdfSystemStatus", "A"),
         # SF MDF OData v2: navigation properties must be inline objects, not plain strings.
         # "cust_Department" is a Valid When association.

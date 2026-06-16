@@ -7,7 +7,7 @@ input rows' chains, it is checked exactly once.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from .entity_config import get_config
 from .hierarchy_resolver import _select_active_record
@@ -120,7 +120,7 @@ class GapChecker:
         exists = [r for r in self._checked.values() if r.status == DEV_EXISTS]
 
         print("\n" + "=" * 70)
-        print(f"  GAP ANALYSIS REPORT")
+        print("  GAP ANALYSIS REPORT")
         print(f"  Total entities checked : {len(self._checked)}")
         print(f"  Already in Dev         : {len(exists)}")
         print(f"  Missing from Dev       : {len(missing)}")

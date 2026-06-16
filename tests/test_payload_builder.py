@@ -5,7 +5,6 @@ Verifies correct field selection, excluded fields, date format, and
 parent code injection per entity type.
 """
 
-import json
 import os
 import re
 import sys
@@ -22,7 +21,6 @@ from src.payload_builder import (
     build_FOBusinessUnit,
     build_FOCompany,
     extract_parent_codes,
-    INFINITY_DATE_STR,
 )
 
 DATE_PATTERN = re.compile(r"^/Date\(\d+\)/$")

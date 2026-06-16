@@ -11,7 +11,6 @@ Upload order (top → bottom):
 
 import json
 import logging
-import sys
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .audit_logger import (
@@ -23,8 +22,7 @@ from .audit_logger import (
     SKIPPED_DUE_TO_PARENT_FAILURE,
     DEV_EXISTS,
 )
-from .entity_config import ENTITY_CONFIG, UPLOAD_ORDER, get_config
-from .gap_checker import GapChecker, DEV_MISSING
+from .entity_config import UPLOAD_ORDER, get_config
 from .hierarchy_resolver import _select_active_record
 from .payload_builder import build_payload, extract_parent_codes
 from .sf_client import SFClient, SFClientError

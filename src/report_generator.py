@@ -25,8 +25,6 @@ from openpyxl.styles import (
     Alignment,
     Font,
     PatternFill,
-    Side,
-    Border,
 )
 from openpyxl.utils import get_column_letter
 

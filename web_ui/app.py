@@ -11,7 +11,6 @@ Routes:
 
 from __future__ import annotations
 
-import json
 import os
 import sys
 import threading
@@ -21,7 +20,7 @@ from typing import Any, Dict
 
 from flask import (
     Flask, jsonify, redirect, render_template, request,
-    send_file, session, url_for,
+    send_file, url_for,
 )
 from werkzeug.utils import secure_filename
 

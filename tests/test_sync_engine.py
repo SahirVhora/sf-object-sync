@@ -8,7 +8,7 @@ import os
 import sys
 import tempfile
 import unittest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 from typing import Any, Dict
 
 import openpyxl
@@ -23,7 +23,7 @@ from src.sync_engine import (
     config_from_env,
     _phase1_validate,
 )
-from src.audit_logger import AuditLogger, VALIDATION_FAILED
+from src.audit_logger import AuditLogger
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ class TestPhase1Validate(unittest.TestCase):
         self.assertEqual(len(errors), 0)
 
     def test_invalid_object_type_rejected(self):
-        path = _make_xlsx([("Division", "DIV-001")], self.tmp)
+        path = _make_xlsx([("Team", "TEAM-001")], self.tmp)
         audit = self._audit()
         errors = []
         rows = _phase1_validate(path, audit, errors)
@@ -90,6 +90,27 @@ class TestPhase1Validate(unittest.TestCase):
         errors = []
         rows = _phase1_validate(path, audit, errors)
         self.assertEqual(rows[0]["object_type"], "Sub Department")
+
+    def test_all_foundation_types_accepted(self):
+        """All 5 OM foundation object types should be accepted as input."""
+        path = _make_xlsx([
+            ("Sub Department", "SUB-001"),
+            ("Department", "DEP-001"),
+            ("Division", "DIV-001"),
+            ("Business Unit", "BU-001"),
+            ("Legal Entity", "LE-001"),
+        ], self.tmp)
+        audit = self._audit()
+        errors = []
+        rows = _phase1_validate(path, audit, errors)
+        self.assertEqual(len(rows), 5)
+        types = [r["object_type"] for r in rows]
+        self.assertIn("Sub Department", types)
+        self.assertIn("Department", types)
+        self.assertIn("Division", types)
+        self.assertIn("Business Unit", types)
+        self.assertIn("Legal Entity", types)
+        self.assertEqual(len(errors), 0)
 
     def test_blank_rows_skipped(self):
         path = _make_xlsx([("", ""), ("Department", "DEP-001"), ("", "")], self.tmp)

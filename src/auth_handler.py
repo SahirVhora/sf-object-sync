@@ -174,7 +174,6 @@ def build_clients_from_env(timeout_sec: int = 30) -> Dict[str, Any]:
         {"prd_client": SFClient, "dev_client": SFClient,
          "prd_url": str, "dev_url": str}
     """
-    from .sf_client import SFClient
 
     source_url = os.getenv("SF_SOURCE_URL", "")
     target_url = os.getenv("SF_TARGET_URL", "")

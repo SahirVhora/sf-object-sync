@@ -6,7 +6,7 @@ and payload construction.  Each key is the canonical object type name used
 throughout the tool (matching valid values in the input.xlsx "Object" column).
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 # ---------------------------------------------------------------------------
 # Read-only fields excluded from every POST payload
@@ -150,7 +150,13 @@ UPLOAD_ORDER: list = [
 ]
 
 # Canonical object types accepted in the input file
-INPUT_VALID_TYPES: frozenset = frozenset(["Sub Department", "Department"])
+INPUT_VALID_TYPES: frozenset = frozenset([
+    "Sub Department",
+    "Department",
+    "Division",
+    "Business Unit",
+    "Legal Entity",
+])
 
 
 def get_config(entity_type: str) -> Dict[str, Any]:

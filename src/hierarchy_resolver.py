@@ -14,7 +14,7 @@ All fetched records are cached by (entity_type, externalCode).
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from .entity_config import ENTITY_CONFIG, get_config
+from .entity_config import get_config
 from .sf_client import SFClient, SFClientError
 
 logger = logging.getLogger(__name__)

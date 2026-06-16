@@ -35,7 +35,7 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 from src.config_loader import load_config
-from src.entity_config import ENTITY_CONFIG, UPLOAD_ORDER, INPUT_VALID_TYPES, get_config
+from src.entity_config import UPLOAD_ORDER, INPUT_VALID_TYPES, get_config
 from src.sf_client import SFClient, SFClientError
 from src.hierarchy_resolver import HierarchyResolver, HierarchyBrokenError, EntityNotFoundError
 from src.gap_checker import GapChecker, DEV_MISSING, DEV_EXISTS

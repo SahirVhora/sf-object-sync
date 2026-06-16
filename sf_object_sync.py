@@ -27,17 +27,16 @@ from colorama import Fore, Style, init as colorama_init
 sys.path.insert(0, os.path.dirname(__file__))
 
 from src.config_loader import load_config
-from src.entity_config import ENTITY_CONFIG, UPLOAD_ORDER, INPUT_VALID_TYPES, get_config
+from src.entity_config import UPLOAD_ORDER, INPUT_VALID_TYPES, get_config
 from src.sf_client import SFClient, SFClientError
 from src.hierarchy_resolver import HierarchyResolver, HierarchyBrokenError, EntityNotFoundError
-from src.gap_checker import GapChecker, DEV_MISSING, DEV_EXISTS
+from src.gap_checker import GapChecker, DEV_MISSING
 from src.payload_builder import build_payload, extract_parent_codes
 from src.uploader import Uploader
 from src.audit_logger import (
     AuditLogger,
     VALIDATION_FAILED, PRD_NOT_FOUND, HIERARCHY_BROKEN,
     DRY_RUN_OK, DRY_RUN_INTEGRITY_FAIL,
-    UPLOAD_SUCCESS, UPLOAD_FAILED,
 )
 from src.report_generator import generate_report
 
@@ -229,13 +228,13 @@ def phase1_validate_input(
 
     # Summary table
     print(f"\n{'─'*60}")
-    print(f"  INPUT VALIDATION SUMMARY")
+    print("  INPUT VALIDATION SUMMARY")
     print(f"{'─'*60}")
     print(f"  Total data rows read   : {row_number - 1}")
     print(f"  Valid rows             : {len(valid_rows)}")
     print(f"  Rejected rows          : {len(validation_errors)}")
     if valid_rows:
-        print(f"\n  Valid rows to process:")
+        print("\n  Valid rows to process:")
         print(f"  {'#':<5} {'Object Type':<20} {'Code'}")
         print(f"  {'─'*45}")
         for i, row in enumerate(valid_rows, 1):
@@ -546,7 +545,7 @@ def phase5_dry_run(
             )
 
             lines.append(f"   externalCode: {code}")
-            lines.append(f"   Payload:")
+            lines.append("   Payload:")
             for pl in payload_str.splitlines():
                 lines.append(f"     {pl}")
             lines.append("")
@@ -634,7 +633,6 @@ def phase7_report(
     """Build object_detail_rows from chains + gap_results and generate Excel report."""
     logger.info("Phase 7 - Generating Excel report")
 
-    from src.entity_config import ENTITY_CONFIG
 
     # Build one row per unique entity processed
     seen: set = set()
