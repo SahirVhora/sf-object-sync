@@ -17,5 +17,7 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt -r requirements-web.txt
+      - name: Lint with ruff
+        run: pip install ruff && ruff check .
       - name: Run tests
         run: pytest tests/ -q
