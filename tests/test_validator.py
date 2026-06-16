@@ -50,17 +50,23 @@ class TestNormaliseObjectType:
         assert _normalise_object_type("  Sub Department  ") == "Sub Department"
 
     def test_invalid_type(self):
-        assert _normalise_object_type("Division") is None
         assert _normalise_object_type("") is None
         assert _normalise_object_type("SomethingElse") is None
+
+    def test_parent_object_types_are_valid(self):
+        assert _normalise_object_type("Division") == "Division"
+        assert _normalise_object_type("Business Unit") == "Business Unit"
+        assert _normalise_object_type("Legal Entity") == "Legal Entity"
 
 
 class TestPhase1ValidateInput:
     def test_valid_rows(self, audit, tmp_path):
-        path = _make_xlsx([
-            ("Sub Department", "10000073"),
-            ("Department", "10016236"),
-        ])
+        path = _make_xlsx(
+            [
+                ("Sub Department", "10000073"),
+                ("Department", "10016236"),
+            ]
+        )
         errors = []
         result = phase1_validate_input(path, audit, errors)
         assert len(result) == 2
@@ -78,16 +84,18 @@ class TestPhase1ValidateInput:
         os.unlink(path)
 
     def test_invalid_object_type_rejected(self, audit, tmp_path):
-        path = _make_xlsx([
-            ("Division", "10012042"),
-            ("Department", "10016236"),
-        ])
+        path = _make_xlsx(
+            [
+                ("SomethingElse", "10012042"),
+                ("Department", "10016236"),
+            ]
+        )
         errors = []
         result = phase1_validate_input(path, audit, errors)
         assert len(result) == 1
         assert result[0]["object_type"] == "Department"
         assert len(errors) == 1
-        assert errors[0]["input_object"] == "Division"
+        assert errors[0]["input_object"] == "SomethingElse"
         os.unlink(path)
 
     def test_empty_code_rejected(self, audit, tmp_path):
@@ -100,11 +108,13 @@ class TestPhase1ValidateInput:
         os.unlink(path)
 
     def test_blank_rows_skipped(self, audit, tmp_path):
-        path = _make_xlsx([
-            ("Sub Department", "10000073"),
-            ("", ""),
-            ("Department", "10016236"),
-        ])
+        path = _make_xlsx(
+            [
+                ("Sub Department", "10000073"),
+                ("", ""),
+                ("Department", "10016236"),
+            ]
+        )
         errors = []
         result = phase1_validate_input(path, audit, errors)
         assert len(result) == 2
@@ -129,7 +139,7 @@ class TestPhase1ValidateInput:
         os.unlink(path)
 
     def test_audit_log_validation_failed(self, audit, tmp_path):
-        path = _make_xlsx([("Legal Entity", "LE001")])
+        path = _make_xlsx([("SomethingElse", "LE001")])
         errors = []
         with pytest.raises(SystemExit):
             phase1_validate_input(path, audit, errors)
