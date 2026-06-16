@@ -34,20 +34,22 @@ _HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from src.config_loader import load_config
-from src.entity_config import UPLOAD_ORDER, INPUT_VALID_TYPES, get_config
-from src.sf_client import SFClient, SFClientError
-from src.hierarchy_resolver import HierarchyResolver, HierarchyBrokenError, EntityNotFoundError
-from src.gap_checker import GapChecker, DEV_MISSING, DEV_EXISTS
-from src.payload_builder import build_payload, extract_parent_codes
-from src.uploader import Uploader
-from src.audit_logger import (
+# Imports below must follow the sys.path bootstrap so the 'src' package
+# is resolvable when this file is run as a script (python src/sync_engine.py).
+from src.config_loader import load_config  # noqa: E402
+from src.entity_config import UPLOAD_ORDER, INPUT_VALID_TYPES, get_config  # noqa: E402
+from src.sf_client import SFClient, SFClientError  # noqa: E402
+from src.hierarchy_resolver import HierarchyResolver, HierarchyBrokenError, EntityNotFoundError  # noqa: E402
+from src.gap_checker import GapChecker, DEV_MISSING, DEV_EXISTS  # noqa: E402
+from src.payload_builder import build_payload, extract_parent_codes  # noqa: E402
+from src.uploader import Uploader  # noqa: E402
+from src.audit_logger import (  # noqa: E402
     AuditLogger,
     VALIDATION_FAILED, PRD_NOT_FOUND, HIERARCHY_BROKEN,
     DRY_RUN_OK, DRY_RUN_INTEGRITY_FAIL,
     UPLOAD_SUCCESS, UPLOAD_FAILED,
 )
-from src.report_generator import generate_report
+from src.report_generator import generate_report  # noqa: E402
 
 logger = logging.getLogger("sync_engine")
 
@@ -214,7 +216,6 @@ def _phase1_validate(input_path: str, audit: AuditLogger, errors: list) -> list:
         for row_number, row in enumerate(candidate_rows, start=1):
             vals = [str(c.value or "").strip().lower() for c in row]
             if "object" in vals and "code" in vals:
-                ws = candidate
                 rows_iter = candidate_rows
                 header_row = vals
                 header_row_number = row_number
@@ -417,7 +418,7 @@ def _phase5_dry_run(resolved_chains, gap_results, prd_cache, audit, output_dir,
                       payload_sent=payload if status == DRY_RUN_OK else None,
                       error_message="" if status == DRY_RUN_OK else payload_str)
             lines += [f"   externalCode: {code}", "   Payload:"]
-            lines += [f"     {l}" for l in payload_str.splitlines()]
+            lines += [f"     {line}" for line in payload_str.splitlines()]
             lines.append("")
 
     if not missing_by_level:

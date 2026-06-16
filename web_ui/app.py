@@ -35,9 +35,11 @@ try:
 except ImportError:
     pass
 
-from src.sync_engine import sync_objects
-from src.sf_client import SFClient, SFClientError
-from src.auth_handler import build_sf_client, AuthError
+# Imports below must follow the sys.path / dotenv bootstrap so that the
+# 'src' package can be located when this file is run as a script.
+from src.sync_engine import sync_objects  # noqa: E402
+from src.sf_client import SFClient, SFClientError  # noqa: E402
+from src.auth_handler import build_sf_client, AuthError  # noqa: E402
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -227,8 +229,18 @@ def process():
     os.environ["SF_TARGET_CERT_PATH"]     = target_cert_path     or os.getenv("SF_TARGET_CERT_PATH", "")
     os.environ["SF_TARGET_KEY_PATH"]      = target_key_path      or os.getenv("SF_TARGET_KEY_PATH", "")
 
-    source_config = {"base_url": source_url, "username": source_user, "password": source_pass}
-    target_config = {"base_url": target_url, "username": target_user, "password": target_pass}
+    source_config = {
+        "base_url": source_url,
+        "username": source_user,
+        "password": source_pass,
+        "company_id": source_company_id,
+    }
+    target_config = {
+        "base_url": target_url,
+        "username": target_user,
+        "password": target_pass,
+        "company_id": target_company_id,
+    }
 
     # ── Register run and kick off background thread ───────────────────────────
     with _RUNS_LOCK:
