@@ -70,3 +70,11 @@ def test_connection_api_validates_required_urls():
     assert body["ok"] is False
     assert body["source"]["ok"] is False
     assert body["target"]["ok"] is False
+
+def test_settings_script_does_not_persist_sensitive_fields():
+    script = open(os.path.join(_ROOT, "web_ui", "static", "script.js"), encoding="utf-8").read()
+
+    assert "const SENSITIVE_FIELDS" in script
+    assert "!SENSITIVE_FIELDS.has(id)" in script
+    assert "delete settings[id]" in script
+    assert "hidden.value = modal.value" in script

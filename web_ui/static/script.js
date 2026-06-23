@@ -4,6 +4,12 @@
  */
 
 const STORAGE_KEY = 'sf_sync_settings';
+const SENSITIVE_FIELDS = new Set([
+  'source_password',
+  'source_client_secret',
+  'target_password',
+  'target_client_secret',
+]);
 
 // ── Field map: modal input id → hidden form field id ──────────────────────────
 const FIELD_MAP = {
@@ -72,7 +78,7 @@ function saveSettings() {
   const settings = {};
   Object.keys(FIELD_MAP).forEach(function (id) {
     const el = document.getElementById(id);
-    if (el) settings[id] = el.value;
+    if (el && !SENSITIVE_FIELDS.has(id)) settings[id] = el.value;
   });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 
@@ -186,6 +192,17 @@ function loadSettings() {
     return null;
   }
 
+  let removedSensitiveValues = false;
+  SENSITIVE_FIELDS.forEach(function (id) {
+    if (settings[id] !== undefined) {
+      delete settings[id];
+      removedSensitiveValues = true;
+    }
+  });
+  if (removedSensitiveValues) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  }
+
   Object.keys(FIELD_MAP).forEach(function (id) {
     const el = document.getElementById(id);
     if (el && settings[id] !== undefined) el.value = settings[id];
@@ -227,8 +244,11 @@ function populateHiddenFields() {
   }
 
   Object.entries(FIELD_MAP).forEach(function ([modalId, hiddenId]) {
+    const modal = document.getElementById(modalId);
     const hidden = document.getElementById(hiddenId);
-    if (hidden && settings[modalId] !== undefined) {
+    if (hidden && SENSITIVE_FIELDS.has(modalId) && modal) {
+      hidden.value = modal.value;
+    } else if (hidden && settings[modalId] !== undefined) {
       hidden.value = settings[modalId];
     }
   });
