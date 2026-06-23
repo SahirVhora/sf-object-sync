@@ -23,8 +23,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v4
+      - name: Build static Pages artifact
+        run: |
+          mkdir -p public
+          cp index.html favicon.svg preview.svg robots.txt _headers .nojekyll public/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: 'public'
       - uses: actions/deploy-pages@v4
         id: deployment

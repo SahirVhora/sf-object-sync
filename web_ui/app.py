@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import sys
 import threading
+import traceback
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
@@ -23,6 +24,7 @@ from flask import (
     send_file, url_for,
 )
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
 
 # ── Path bootstrap so we can import src.* regardless of CWD ──────────────────
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,6 +47,7 @@ from src.auth_handler import build_sf_client, AuthError  # noqa: E402
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24).hex())
+app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_UPLOAD_BYTES", 10 * 1024 * 1024))
 
 
 @app.after_request
@@ -53,6 +56,14 @@ def add_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_oversized_upload(_exc):
+    return render_template(
+        "index.html",
+        error="Uploaded file is too large. Maximum size is 10 MB by default; set MAX_UPLOAD_BYTES to change it.",
+    ), 413
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 OUTPUT_DIR = os.path.abspath(os.path.join(_ROOT, "output"))
@@ -260,17 +271,27 @@ def process():
             with _RUNS_LOCK:
                 _RUNS[run_id].update({"phase": phase, "message": msg, "percent": pct})
 
-        result = sync_objects(
-            source_config=source_config,
-            target_config=target_config,
-            input_file_path=save_path,
-            dry_run=dry_run,
-            output_dir=OUTPUT_DIR,
-            progress_callback=_progress,
-        )
+        try:
+            result = sync_objects(
+                source_config=source_config,
+                target_config=target_config,
+                input_file_path=save_path,
+                dry_run=dry_run,
+                output_dir=OUTPUT_DIR,
+                progress_callback=_progress,
+            )
+            status = "done"
+            message = "Sync complete."
+        except Exception as exc:  # pragma: no cover - defensive thread guard
+            traceback.print_exc()
+            result = {"error": str(exc), "logs": [f"Fatal error: {exc}"]}
+            status = "failed"
+            message = "Sync failed. Review the error details."
 
         with _RUNS_LOCK:
-            _RUNS[run_id]["status"] = "done"
+            _RUNS[run_id]["status"] = status
+            _RUNS[run_id]["phase"] = status
+            _RUNS[run_id]["message"] = message
             _RUNS[run_id]["percent"] = 100
             _RUNS[run_id]["result"] = result
             _RUNS[run_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
@@ -288,7 +309,7 @@ def status_page(run_id: str):
         run = _RUNS.get(run_id)
     if run is None:
         return render_template("index.html", error=f"Unknown run ID: {run_id}"), 404
-    if run["status"] == "done":
+    if run["status"] in {"done", "failed"}:
         return redirect(url_for("results_page", run_id=run_id))
     return render_template("status.html", run_id=run_id, run=run)
 
@@ -315,7 +336,7 @@ def results_page(run_id: str):
         run = _RUNS.get(run_id)
     if run is None:
         return render_template("index.html", error=f"Unknown run ID: {run_id}"), 404
-    if run["status"] != "done":
+    if run["status"] not in {"done", "failed"}:
         return redirect(url_for("status_page", run_id=run_id))
     return render_template("results.html", run_id=run_id, run=run, result=run["result"])
 

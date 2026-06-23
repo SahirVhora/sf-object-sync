@@ -50,7 +50,7 @@
           document.getElementById('progress-bar').style.width = data.percent + '%';
           document.getElementById('progress-label').textContent =
             `${data.phase}: ${data.message} (${data.percent}%)`;
-          if (data.status === 'done') {
+          if (data.status === 'done' || data.status === 'failed') {
             window.location.href = resultsUrl;
           } else {
             setTimeout(poll, 1500);

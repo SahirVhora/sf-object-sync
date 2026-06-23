@@ -1,15 +1,21 @@
 # config.yaml.example
-sap_successfactors:
-  production:
-    base_url: "https://your-instance.successfactors.com"
-    company_id: "YOUR_COMPANY_ID"
-    username: "YOUR_USERNAME"
-    password: "YOUR_PASSWORD"
-  
-  development:
-    base_url: "https://your-dev-instance.successfactors.com"
-    company_id: "YOUR_COMPANY_ID"
-    username: "YOUR_USERNAME"
-    password: "YOUR_PASSWORD"
+# Copy to config.yaml and fill in your tenant-specific values.
+# config.yaml is git-ignored; do not commit credentials.
 
-# Add other configuration sections...
+prd:
+  base_url: "https://your-prd-instance.successfactors.com/odata/v2"
+  username: "api_user@YOUR_COMPANY_ID"
+  password: "YOUR_PRD_PASSWORD"
+  company_id: "YOUR_COMPANY_ID"
+
+dev:
+  base_url: "https://your-dev-instance.successfactors.com/odata/v2"
+  username: "api_user@YOUR_COMPANY_ID"
+  password: "YOUR_DEV_PASSWORD"
+  company_id: "YOUR_COMPANY_ID"
+
+options:
+  dry_run: true
+  log_level: "INFO"
+  output_dir: "./output"
+  request_timeout_sec: 30

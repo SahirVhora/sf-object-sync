@@ -345,7 +345,7 @@ Dev gap checks fail closed: if the tool cannot query Target because of authentic
 
 ## License
 
-Apache 2.0 - see [LICENSE](LICENSE) for details.
+MIT - see [LICENSE](LICENSE) for details.
 
 ---
 
