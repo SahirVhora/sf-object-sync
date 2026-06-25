@@ -58,6 +58,19 @@ def add_security_headers(response):
     return response
 
 
+# Optional shared-secret gate. Off by default (local single-user tool); set
+# WEB_UI_TOKEN to require it on every request when binding beyond localhost.
+@app.before_request
+def _require_token():
+    expected = os.getenv("WEB_UI_TOKEN")
+    if not expected:
+        return None
+    supplied = request.headers.get("X-Auth-Token") or request.args.get("token")
+    if supplied != expected:
+        return "Unauthorized", 401
+    return None
+
+
 @app.errorhandler(RequestEntityTooLarge)
 def handle_oversized_upload(_exc):
     return render_template(
@@ -370,5 +383,8 @@ def download_report(run_id: str):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("FLASK_DEBUG", "false").lower() in ("true", "1")
-    print(f"sf_object_sync web UI starting on http://127.0.0.1:{port}")
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    # Bind to loopback by default; this UI handles tenant credentials and has
+    # no auth unless WEB_UI_TOKEN is set. Override HOST explicitly to expose it.
+    host = os.getenv("HOST", "127.0.0.1")
+    print(f"sf_object_sync web UI starting on http://{host}:{port}")
+    app.run(host=host, port=port, debug=debug)
