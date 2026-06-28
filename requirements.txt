@@ -1,6 +1,13 @@
-requests>=2.31.0
-openpyxl>=3.1.2
-colorama>=0.4.6
-pyyaml>=6.0.1
-python-dotenv>=1.0.0
-pytest>=8.0.0
+# Core dependencies
+requests==2.34.2
+openpyxl==3.1.5
+flask==3.1.3
+pyyaml==6.0.3
+python-dotenv==1.2.2
+colorama==0.4.6
+
+# Flask-adjacent (explicitly imported)
+werkzeug==3.1.8
+
+# Development / testing
+pytest==9.1.1
