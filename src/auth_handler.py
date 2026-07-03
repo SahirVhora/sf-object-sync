@@ -1,73 +1,13 @@
-"""
-Authentication handler - builds authenticated SFClient instances based on
-the AUTH_METHOD environment variable (or explicit argument).
-
-Supported methods:
-  basic       - HTTP Basic Auth (username + password)
-  oauth       - OAuth 2.0 client credentials (token endpoint)
-  certificate - Mutual TLS with a client certificate + private key
-"""
+"""Build authenticated SFClient instances from unified shared auth config."""
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
-import requests
-from requests.auth import AuthBase, HTTPBasicAuth
+from sapsf_shared.auth import AuthConfig
 
 logger = logging.getLogger(__name__)
 
-# Imported lazily to avoid hard dependency when basic auth is the only method used
-_CERT_AUTH_AVAILABLE = True
-
-
-# ── Custom OAuth bearer-token Auth class ─────────────────────────────────────
-
-class _BearerAuth(AuthBase):
-    """Attaches an OAuth 2.0 Bearer token to every request."""
-
-    def __init__(self, token: str) -> None:
-        self._token = token
-
-    def __call__(self, r: requests.PreparedRequest) -> requests.PreparedRequest:
-        r.headers["Authorization"] = f"Bearer {self._token}"
-        return r
-
-
-# ── Token fetcher ─────────────────────────────────────────────────────────────
-
-def _fetch_oauth_token(
-    token_url: str,
-    client_id: str,
-    client_secret: str,
-    timeout: int = 30,
-) -> str:
-    """
-    Fetch an OAuth 2.0 access token via client credentials grant.
-
-    Raises AuthError on failure.
-    """
-    try:
-        resp = requests.post(
-            token_url,
-            data={
-                "grant_type": "client_credentials",
-                "client_id": client_id,
-                "client_secret": client_secret,
-            },
-            timeout=timeout,
-        )
-        resp.raise_for_status()
-        token = resp.json().get("access_token")
-        if not token:
-            raise AuthError("OAuth response missing access_token field")
-        logger.debug("OAuth token obtained from %s", token_url)
-        return token
-    except requests.exceptions.RequestException as exc:
-        raise AuthError(f"OAuth token request failed: {exc}") from exc
-
-
-# ── Public exception ──────────────────────────────────────────────────────────
 
 class AuthError(Exception):
     """Raised when authentication cannot be established."""
@@ -75,12 +15,13 @@ class AuthError(Exception):
 
 # ── Main public function ──────────────────────────────────────────────────────
 
+
 def build_sf_client(
     env: str,
     base_url: str,
-    auth_method: Optional[str] = None,
-    username: Optional[str] = None,
-    password: Optional[str] = None,
+    auth_method: str | None = None,
+    username: str | None = None,
+    password: str | None = None,
     timeout_sec: int = 30,
 ) -> "SFClient":  # noqa: F821  (imported below to avoid circular import)
     """
@@ -100,73 +41,86 @@ def build_sf_client(
     from .sf_client import SFClient
 
     method = (auth_method or os.getenv("AUTH_METHOD", "basic")).lower()
+    if method == "oauth":
+        method = "oauth2"
     env_prefix = f"SF_{env.upper()}"
 
     if method == "basic":
-        user = username or os.getenv(f"{env_prefix}_USER") or os.getenv(f"{env_prefix}_USERNAME", "")
+        user = (
+            username or os.getenv(f"{env_prefix}_USER") or os.getenv(f"{env_prefix}_USERNAME", "")
+        )
         pwd = password or os.getenv(f"{env_prefix}_PASSWORD", "")
         if not user or not pwd:
-            raise AuthError(
-                f"Basic auth requires {env_prefix}_USER and {env_prefix}_PASSWORD"
-            )
+            raise AuthError(f"Basic auth requires {env_prefix}_USER and {env_prefix}_PASSWORD")
         logger.debug("Building SFClient[%s] with Basic Auth (user=%s)", env, user)
         return SFClient(
             base_url=base_url,
             username=user,
             password=pwd,
             timeout_sec=timeout_sec,
-            auth=HTTPBasicAuth(user, pwd),
         )
 
-    elif method == "oauth":
+    elif method == "oauth2":
         client_id = os.getenv(f"{env_prefix}_CLIENT_ID", "")
         client_secret = os.getenv(f"{env_prefix}_CLIENT_SECRET", "")
         token_url = os.getenv(f"{env_prefix}_TOKEN_URL", "")
-        if not client_id or not client_secret or not token_url:
+        company_id = os.getenv(f"{env_prefix}_COMPANY_ID", os.getenv("SF_COMPANY_ID", ""))
+        if not client_id or not client_secret or not token_url or not company_id:
             raise AuthError(
                 f"OAuth auth requires {env_prefix}_CLIENT_ID, "
-                f"{env_prefix}_CLIENT_SECRET, {env_prefix}_TOKEN_URL"
+                f"{env_prefix}_CLIENT_SECRET, {env_prefix}_TOKEN_URL, "
+                f"and {env_prefix}_COMPANY_ID or SF_COMPANY_ID"
             )
-        token = _fetch_oauth_token(token_url, client_id, client_secret, timeout=timeout_sec)
         logger.debug("Building SFClient[%s] with OAuth Bearer", env)
-        return SFClient(
+        client = SFClient(
             base_url=base_url,
-            username="",
-            password="",
             timeout_sec=timeout_sec,
-            auth=_BearerAuth(token),
         )
+        client.config = AuthConfig(
+            base_url=base_url,
+            company_id=company_id,
+            auth_type="oauth2",
+            client_id=client_id,
+            client_secret=client_secret,
+            token_url=token_url,
+            timeout_sec=timeout_sec,
+        )
+        from sapsf_shared.auth import build_requests_auth
+
+        client._session.auth, client._session.cert = build_requests_auth(client.config)
+        return client
 
     elif method == "certificate":
         cert_path = os.getenv(f"{env_prefix}_CERT_PATH", "")
         key_path = os.getenv(f"{env_prefix}_KEY_PATH", "")
         if not cert_path or not key_path:
             raise AuthError(
-                f"Certificate auth requires {env_prefix}_CERT_PATH and "
-                f"{env_prefix}_KEY_PATH"
+                f"Certificate auth requires {env_prefix}_CERT_PATH and {env_prefix}_KEY_PATH"
             )
         if not os.path.isfile(cert_path):
             raise AuthError(f"Certificate file not found: {cert_path}")
         if not os.path.isfile(key_path):
             raise AuthError(f"Key file not found: {key_path}")
-        logger.debug(
-            "Building SFClient[%s] with Certificate Auth (cert=%s)", env, cert_path
-        )
-        return SFClient(
+        logger.debug("Building SFClient[%s] with Certificate Auth (cert=%s)", env, cert_path)
+        client = SFClient(base_url=base_url, timeout_sec=timeout_sec)
+        client.config = AuthConfig(
             base_url=base_url,
-            username="",
-            password="",
+            auth_type="certificate",
+            cert_path=cert_path,
+            key_path=key_path,
             timeout_sec=timeout_sec,
-            cert=(cert_path, key_path),
         )
+        client._session.cert = (cert_path, key_path)
+        client._session.auth = None
+        return client
 
     else:
         raise AuthError(
-            f"Unknown AUTH_METHOD '{method}'. Must be one of: basic, oauth, certificate"
+            f"Unknown AUTH_METHOD '{method}'. Must be one of: basic, oauth2, certificate"
         )
 
 
-def build_clients_from_env(timeout_sec: int = 30) -> Dict[str, Any]:
+def build_clients_from_env(timeout_sec: int = 30) -> dict[str, Any]:
     """
     Build PRD (source) and Dev (target) SFClient instances from environment variables.
 

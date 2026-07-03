@@ -10,7 +10,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.sf_client import _odata_escape
+from src.sf_client import SFClient, _odata_escape
 
 
 class TestOdataEscape:
@@ -36,3 +36,24 @@ class TestOdataEscape:
 
     def test_non_string_coerced(self):
         assert _odata_escape(123) == "123"
+
+
+class TestSFClientFilterConstruction:
+    def test_get_entity_by_code_escapes_obrien_filter(self):
+        client = SFClient(
+            "https://example.successfactors.com/odata/v2",
+            "api_user",
+            "secret",
+        )
+        captured = {}
+
+        def fake_paginate(url, params):
+            captured["url"] = url
+            captured["params"] = params
+            return []
+
+        client._paginate = fake_paginate
+
+        assert client.get_entity_by_code("FODepartment", "O'Brien") == []
+        assert captured["url"] == "https://example.successfactors.com/odata/v2/FODepartment"
+        assert captured["params"]["$filter"] == "externalCode eq 'O''Brien'"

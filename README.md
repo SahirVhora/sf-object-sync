@@ -53,20 +53,27 @@ python web_ui/app.py
 
 ## Authentication Methods
 
+`sf-object-sync` uses the shared `sapsf_shared.SFClient` auth contract. The
+canonical variables are documented once in `../_shared/README.md`; this tool
+uses `SF_SOURCE_*` for PRD and `SF_TARGET_*` for Dev.
+
 Set `AUTH_METHOD` in `.env` (default: `basic`):
 
 ### Basic Auth (default)
 ```env
 AUTH_METHOD=basic
-SF_SOURCE_USER=api_user@company.com
+SF_SOURCE_USERNAME=api_user@company.com
 SF_SOURCE_PASSWORD=your_password
-SF_TARGET_USER=api_user@company.com
+SF_TARGET_USERNAME=api_user@company.com
 SF_TARGET_PASSWORD=your_password
 ```
+
+Legacy `SF_SOURCE_USER` and `SF_TARGET_USER` aliases are still accepted.
 
 ### OAuth 2.0 (Client Credentials)
 ```env
 AUTH_METHOD=oauth
+SF_COMPANY_ID=companyId
 SF_SOURCE_CLIENT_ID=your_client_id
 SF_SOURCE_CLIENT_SECRET=your_client_secret
 SF_SOURCE_TOKEN_URL=https://<prd-host>/oauth/token
@@ -95,12 +102,13 @@ cp .env.example .env
 | Variable | Required | Description |
 |---|---|---|
 | `SF_SOURCE_URL` | Yes | PRD OData v2 base URL (`https://<host>/odata/v2`) |
-| `SF_SOURCE_USER` | Basic only | PRD API username |
+| `SF_SOURCE_USERNAME` | Basic only | PRD API username |
 | `SF_SOURCE_PASSWORD` | Basic only | PRD API password |
 | `SF_TARGET_URL` | Yes | Dev OData v2 base URL |
-| `SF_TARGET_USER` | Basic only | Dev API username |
+| `SF_TARGET_USERNAME` | Basic only | Dev API username |
 | `SF_TARGET_PASSWORD` | Basic only | Dev API password |
-| `AUTH_METHOD` | No | `basic` (default) \| `oauth` \| `certificate` |
+| `AUTH_METHOD` | No | `basic` (default) \| `oauth2`/`oauth` \| `certificate` |
+| `SF_COMPANY_ID` | OAuth/basic helper | Company ID when required by auth |
 | `DRY_RUN` | No | `true` (default) \| `false` |
 | `LOG_LEVEL` | No | `INFO` (default) \| `DEBUG` |
 | `OUTPUT_DIR` | No | `./output` (default) |
