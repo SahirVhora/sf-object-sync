@@ -12,10 +12,10 @@ from typing import Any
 
 from sapsf_shared import AuthConfig
 from sapsf_shared import SFClient as SharedSFClient
-from sapsf_shared.exceptions import SFClientError
+from sapsf_shared.exceptions import AmbiguousWriteError, SFClientError
 from sapsf_shared.utils import odata_escape
 
-__all__ = ["SFClient", "SFClientError", "_odata_escape"]
+__all__ = ["AmbiguousWriteError", "SFClient", "SFClientError", "_odata_escape"]
 
 
 def _odata_escape(value: str) -> str:

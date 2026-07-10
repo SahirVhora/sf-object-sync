@@ -14,18 +14,18 @@ import logging
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .audit_logger import (
-    AuditLogger,
-    UPLOAD_SUCCESS,
-    UPLOAD_FAILED,
-    VERIFICATION_OK,
-    VERIFICATION_FAILED,
-    SKIPPED_DUE_TO_PARENT_FAILURE,
     DEV_EXISTS,
+    SKIPPED_DUE_TO_PARENT_FAILURE,
+    UPLOAD_FAILED,
+    UPLOAD_SUCCESS,
+    VERIFICATION_FAILED,
+    VERIFICATION_OK,
+    AuditLogger,
 )
 from .entity_config import UPLOAD_ORDER, get_config
 from .hierarchy_resolver import _select_active_record
 from .payload_builder import build_payload, extract_parent_codes
-from .sf_client import SFClient, SFClientError
+from .sf_client import AmbiguousWriteError, SFClient, SFClientError
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ class Uploader:
         # Collect all unique (entity_type, code) pairs across all chains
         all_entities: Dict[Tuple[str, str], List[Tuple[str, str, Dict]]] = {}
         for chain in chains_by_input:
-            for etype, code, record in chain:
+            for etype, code, _record in chain:
                 key = (etype, code)
                 if key not in all_entities:
                     all_entities[key] = chain  # store chain for ancestor lookup
@@ -183,6 +183,47 @@ class Uploader:
         # POST
         try:
             http_status, response = self._dev.post_entity(entity_set, payload)
+        except AmbiguousWriteError as exc:
+            # The server may have committed the create before its response was
+            # lost. Reconcile by the stable external code instead of replaying
+            # a potentially duplicate POST.
+            if self._verify(entity_type, code):
+                msg = f"{exc}; target object found during reconciliation"
+                logger.warning("UPLOAD_SUCCESS (reconciled): %s '%s'", entity_type, code)
+                self._audit.log(
+                    phase="upload",
+                    status=UPLOAD_SUCCESS,
+                    object_type=entity_type,
+                    entity_set=entity_set,
+                    external_code=code,
+                    http_status=exc.status_code,
+                    payload_sent=payload,
+                    response_received={"reconciled": True},
+                    error_message=msg,
+                )
+                self._audit.log(
+                    phase="verification",
+                    status=VERIFICATION_OK,
+                    object_type=entity_type,
+                    entity_set=entity_set,
+                    external_code=code,
+                )
+                return
+
+            msg = f"{exc}; target object not found during reconciliation"
+            logger.error("POST outcome unresolved for %s '%s': %s", entity_type, code, msg)
+            self._audit.log(
+                phase="upload",
+                status=UPLOAD_FAILED,
+                object_type=entity_type,
+                entity_set=entity_set,
+                external_code=code,
+                http_status=exc.status_code,
+                payload_sent=payload,
+                error_message=msg,
+            )
+            self._mark_failed(entity_type, code)
+            return
         except SFClientError as exc:
             msg = str(exc)
             logger.error("POST failed for %s '%s': %s", entity_type, code, msg)
