@@ -126,7 +126,6 @@ def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) 
     if not base_url:
         return {"ok": False, "message": f"{label} OData URL is required."}
 
-    previous_env = dict(os.environ)
     client = None
     try:
         if auth_method == "basic":
@@ -136,14 +135,20 @@ def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) 
                 return {"ok": False, "message": f"{label} username and password are required."}
             client = SFClient(base_url, username, password, timeout_sec=15)
         else:
-            env_prefix = "SF_SOURCE" if env_name == "source" else "SF_TARGET"
-            os.environ[f"{env_prefix}_CLIENT_ID"] = (data.get(f"{prefix}_client_id") or "").strip()
-            os.environ[f"{env_prefix}_CLIENT_SECRET"] = (data.get(f"{prefix}_client_secret") or "").strip()
-            os.environ[f"{env_prefix}_TOKEN_URL"] = (data.get(f"{prefix}_token_url") or "").strip()
-            os.environ[f"{env_prefix}_CERT_PATH"] = (data.get(f"{prefix}_cert_path") or "").strip()
-            os.environ[f"{env_prefix}_KEY_PATH"] = (data.get(f"{prefix}_key_path") or "").strip()
-            os.environ["AUTH_METHOD"] = auth_method
-            client = build_sf_client(env_name, base_url, timeout_sec=15)
+            auth_config = {
+                "client_id": (data.get(f"{prefix}_client_id") or "").strip(),
+                "client_secret": (data.get(f"{prefix}_client_secret") or "").strip(),
+                "token_url": (data.get(f"{prefix}_token_url") or "").strip(),
+                "cert_path": (data.get(f"{prefix}_cert_path") or "").strip(),
+                "key_path": (data.get(f"{prefix}_key_path") or "").strip(),
+            }
+            client = build_sf_client(
+                env_name,
+                base_url,
+                auth_method=auth_method,
+                auth_config=auth_config,
+                timeout_sec=15,
+            )
 
         ok, message = _probe_connection(client)
         return {"ok": ok, "message": message}
@@ -154,8 +159,7 @@ def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) 
     finally:
         if client is not None:
             client.close()
-        os.environ.clear()
-        os.environ.update(previous_env)
+
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────

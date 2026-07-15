@@ -2,7 +2,7 @@ import os
 import sys
 import time
 from io import BytesIO
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
@@ -72,6 +72,52 @@ def test_connection_api_validates_required_urls():
     assert body["ok"] is False
     assert body["source"]["ok"] is False
     assert body["target"]["ok"] is False
+
+
+def test_connection_api_passes_oauth_credentials_without_mutating_environment(monkeypatch):
+    """Connection checks must not leak browser-supplied credentials into process env."""
+    client = app.test_client()
+    monkeypatch.setenv("SF_SOURCE_CLIENT_SECRET", "process-level-secret")
+    captured = {}
+
+    def fake_build_client(env_name, base_url, *, auth_method, auth_config, timeout_sec):
+        captured.update(
+            env_name=env_name,
+            base_url=base_url,
+            auth_method=auth_method,
+            auth_config=auth_config,
+            timeout_sec=timeout_sec,
+        )
+        assert os.environ["SF_SOURCE_CLIENT_SECRET"] == "process-level-secret"
+        return MagicMock()
+
+    payload = {
+        "auth_method": "oauth",
+        "source_url": "https://prd.example.com",
+        "source_client_id": "request-client-id",
+        "source_client_secret": "request-scoped-secret",
+        "source_token_url": "https://login.example.com/token",
+    }
+    with patch("web_ui.app.build_sf_client", fake_build_client), patch(
+        "web_ui.app._probe_connection", return_value=(True, "Connection successful")
+    ):
+        response = client.post("/api/test_connection", json=payload)
+
+    assert response.status_code == 200
+    assert captured == {
+        "env_name": "source",
+        "base_url": "https://prd.example.com/odata/v2",
+        "auth_method": "oauth",
+        "auth_config": {
+            "client_id": "request-client-id",
+            "client_secret": "request-scoped-secret",
+            "token_url": "https://login.example.com/token",
+            "cert_path": "",
+            "key_path": "",
+        },
+        "timeout_sec": 15,
+    }
+    assert os.environ["SF_SOURCE_CLIENT_SECRET"] == "process-level-secret"
 
 def test_settings_script_does_not_persist_sensitive_fields():
     script = open(os.path.join(_ROOT, "web_ui", "static", "script.js"), encoding="utf-8").read()

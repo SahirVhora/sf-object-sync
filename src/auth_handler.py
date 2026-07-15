@@ -10,7 +10,7 @@ Supported methods:
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 import requests
 from requests.auth import AuthBase, HTTPBasicAuth
@@ -81,6 +81,7 @@ def build_sf_client(
     auth_method: Optional[str] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    auth_config: Optional[Mapping[str, str]] = None,
     timeout_sec: int = 30,
 ) -> "SFClient":  # noqa: F821  (imported below to avoid circular import)
     """
@@ -92,6 +93,7 @@ def build_sf_client(
         auth_method : override AUTH_METHOD env var ("basic", "oauth", "certificate")
         username    : override username env var (used for basic auth)
         password    : override password env var (used for basic auth)
+        auth_config : explicit OAuth/certificate settings; values fall back to env
         timeout_sec : per-request timeout in seconds
 
     The function reads from environment variables as fallback for any param
@@ -99,6 +101,7 @@ def build_sf_client(
     """
     from .sf_client import SFClient
 
+    auth_config = auth_config or {}
     method = (auth_method or os.getenv("AUTH_METHOD", "basic")).lower()
     env_prefix = f"SF_{env.upper()}"
 
@@ -119,9 +122,9 @@ def build_sf_client(
         )
 
     elif method == "oauth":
-        client_id = os.getenv(f"{env_prefix}_CLIENT_ID", "")
-        client_secret = os.getenv(f"{env_prefix}_CLIENT_SECRET", "")
-        token_url = os.getenv(f"{env_prefix}_TOKEN_URL", "")
+        client_id = auth_config.get("client_id") or os.getenv(f"{env_prefix}_CLIENT_ID", "")
+        client_secret = auth_config.get("client_secret") or os.getenv(f"{env_prefix}_CLIENT_SECRET", "")
+        token_url = auth_config.get("token_url") or os.getenv(f"{env_prefix}_TOKEN_URL", "")
         if not client_id or not client_secret or not token_url:
             raise AuthError(
                 f"OAuth auth requires {env_prefix}_CLIENT_ID, "
@@ -138,8 +141,8 @@ def build_sf_client(
         )
 
     elif method == "certificate":
-        cert_path = os.getenv(f"{env_prefix}_CERT_PATH", "")
-        key_path = os.getenv(f"{env_prefix}_KEY_PATH", "")
+        cert_path = auth_config.get("cert_path") or os.getenv(f"{env_prefix}_CERT_PATH", "")
+        key_path = auth_config.get("key_path") or os.getenv(f"{env_prefix}_KEY_PATH", "")
         if not cert_path or not key_path:
             raise AuthError(
                 f"Certificate auth requires {env_prefix}_CERT_PATH and "
