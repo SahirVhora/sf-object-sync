@@ -76,3 +76,7 @@ Thumbs.db
 
 # Uploads (web UI temp files)
 web_ui/uploads/
+
+.audit-result.json
+.claude/settings.local.json
+.under-anything/
