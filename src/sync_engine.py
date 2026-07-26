@@ -163,26 +163,29 @@ def config_from_env() -> Dict[str, Any]:
 
 def _make_clients(cfg: Dict[str, Any]) -> Tuple[SFClient, SFClient]:
     """Build PRD + Dev SFClient from a config dict."""
-    auth_method = os.getenv("AUTH_METHOD", "basic").lower()
+    from src.auth_handler import build_sf_client
 
-    if auth_method == "basic":
-        prd = SFClient(
-            cfg["prd"]["base_url"],
-            cfg["prd"]["username"],
-            cfg["prd"]["password"],
-            timeout_sec=cfg["options"].get("request_timeout_sec", 30),
+    timeout = cfg["options"].get("request_timeout_sec", 30)
+
+    def make_one(env: str, environment_cfg: Dict[str, Any]) -> SFClient:
+        auth_method = environment_cfg.get("auth_method") or os.getenv("AUTH_METHOD", "basic")
+        if auth_method.lower() == "basic":
+            return SFClient(
+                environment_cfg["base_url"],
+                environment_cfg.get("username") or "",
+                environment_cfg.get("password") or "",
+                timeout_sec=timeout,
+            )
+        return build_sf_client(
+            env,
+            environment_cfg["base_url"],
+            auth_method=auth_method,
+            auth_config=environment_cfg.get("auth_config"),
+            timeout_sec=timeout,
         )
-        dev = SFClient(
-            cfg["dev"]["base_url"],
-            cfg["dev"]["username"],
-            cfg["dev"]["password"],
-            timeout_sec=cfg["options"].get("request_timeout_sec", 30),
-        )
-    else:
-        from src.auth_handler import build_sf_client
-        timeout = cfg["options"].get("request_timeout_sec", 30)
-        prd = build_sf_client("source", cfg["prd"]["base_url"], timeout_sec=timeout)
-        dev = build_sf_client("target", cfg["dev"]["base_url"], timeout_sec=timeout)
+
+    prd = make_one("source", cfg["prd"])
+    dev = make_one("target", cfg["dev"])
 
     return prd, dev
 
