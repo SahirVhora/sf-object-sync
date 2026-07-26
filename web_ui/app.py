@@ -146,7 +146,6 @@ def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) 
     if not base_url:
         return {"ok": False, "message": f"{label} OData URL is required."}
 
-    previous_env = dict(os.environ)
     client = None
     try:
         if auth_method == "basic":
@@ -156,14 +155,21 @@ def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) 
                 return {"ok": False, "message": f"{label} username and password are required."}
             client = SFClient(base_url, username, password, timeout_sec=15)
         else:
-            env_prefix = "SF_SOURCE" if env_name == "source" else "SF_TARGET"
-            os.environ[f"{env_prefix}_CLIENT_ID"] = (data.get(f"{prefix}_client_id") or "").strip()
-            os.environ[f"{env_prefix}_CLIENT_SECRET"] = (data.get(f"{prefix}_client_secret") or "").strip()
-            os.environ[f"{env_prefix}_TOKEN_URL"] = (data.get(f"{prefix}_token_url") or "").strip()
-            os.environ[f"{env_prefix}_CERT_PATH"] = (data.get(f"{prefix}_cert_path") or "").strip()
-            os.environ[f"{env_prefix}_KEY_PATH"] = (data.get(f"{prefix}_key_path") or "").strip()
-            os.environ["AUTH_METHOD"] = auth_method
-            client = build_sf_client(env_name, base_url, timeout_sec=15)
+            auth_config = {
+                "client_id": (data.get(f"{prefix}_client_id") or "").strip(),
+                "client_secret": (data.get(f"{prefix}_client_secret") or "").strip(),
+                "token_url": (data.get(f"{prefix}_token_url") or "").strip(),
+                "company_id": (data.get(f"{prefix}_company_id") or "").strip(),
+                "cert_path": (data.get(f"{prefix}_cert_path") or "").strip(),
+                "key_path": (data.get(f"{prefix}_key_path") or "").strip(),
+            }
+            client = build_sf_client(
+                env_name,
+                base_url,
+                auth_method=auth_method,
+                auth_config=auth_config,
+                timeout_sec=15,
+            )
 
         ok, message = _probe_connection(client)
         return {"ok": ok, "message": message}
@@ -174,8 +180,6 @@ def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) 
     finally:
         if client is not None:
             client.close()
-        os.environ.clear()
-        os.environ.update(previous_env)
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -261,29 +265,33 @@ def process():
     source_url = _normalise_odata_url(source_url)
     target_url = _normalise_odata_url(target_url)
 
-    # Expose OAuth/cert credentials as env vars so auth_handler can pick them up
-    os.environ["SF_SOURCE_CLIENT_ID"]     = source_client_id     or os.getenv("SF_SOURCE_CLIENT_ID", "")
-    os.environ["SF_SOURCE_CLIENT_SECRET"] = source_client_secret or os.getenv("SF_SOURCE_CLIENT_SECRET", "")
-    os.environ["SF_SOURCE_TOKEN_URL"]     = source_token_url     or os.getenv("SF_SOURCE_TOKEN_URL", "")
-    os.environ["SF_SOURCE_CERT_PATH"]     = source_cert_path     or os.getenv("SF_SOURCE_CERT_PATH", "")
-    os.environ["SF_SOURCE_KEY_PATH"]      = source_key_path      or os.getenv("SF_SOURCE_KEY_PATH", "")
-    os.environ["SF_TARGET_CLIENT_ID"]     = target_client_id     or os.getenv("SF_TARGET_CLIENT_ID", "")
-    os.environ["SF_TARGET_CLIENT_SECRET"] = target_client_secret or os.getenv("SF_TARGET_CLIENT_SECRET", "")
-    os.environ["SF_TARGET_TOKEN_URL"]     = target_token_url     or os.getenv("SF_TARGET_TOKEN_URL", "")
-    os.environ["SF_TARGET_CERT_PATH"]     = target_cert_path     or os.getenv("SF_TARGET_CERT_PATH", "")
-    os.environ["SF_TARGET_KEY_PATH"]      = target_key_path      or os.getenv("SF_TARGET_KEY_PATH", "")
-
     source_config = {
         "base_url": source_url,
         "username": source_user,
         "password": source_pass,
-        "company_id": source_company_id,
+        "auth_method": auth_method,
+        "auth_config": {
+            "client_id": source_client_id,
+            "client_secret": source_client_secret,
+            "token_url": source_token_url,
+            "company_id": source_company_id,
+            "cert_path": source_cert_path,
+            "key_path": source_key_path,
+        },
     }
     target_config = {
         "base_url": target_url,
         "username": target_user,
         "password": target_pass,
-        "company_id": target_company_id,
+        "auth_method": auth_method,
+        "auth_config": {
+            "client_id": target_client_id,
+            "client_secret": target_client_secret,
+            "token_url": target_token_url,
+            "company_id": target_company_id,
+            "cert_path": target_cert_path,
+            "key_path": target_key_path,
+        },
     }
 
     # ── Register run and kick off background thread ───────────────────────────
@@ -296,8 +304,6 @@ def process():
             "started_at": datetime.now(timezone.utc).isoformat(),
             "result": None,
         }
-
-    os.environ["AUTH_METHOD"] = auth_method
 
     def _run():
         def _progress(phase: str, msg: str, pct: int) -> None:

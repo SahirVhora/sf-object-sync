@@ -2,6 +2,7 @@
 
 import logging
 import os
+from collections.abc import Mapping
 from typing import Any
 
 from sapsf_shared.auth import AuthConfig
@@ -23,6 +24,7 @@ def build_sf_client(
     username: str | None = None,
     password: str | None = None,
     timeout_sec: int = 30,
+    auth_config: Mapping[str, str] | None = None,
 ) -> "SFClient":  # noqa: F821  (imported below to avoid circular import)
     """
     Build and return an authenticated SFClient for *base_url*.
@@ -34,12 +36,14 @@ def build_sf_client(
         username    : override username env var (used for basic auth)
         password    : override password env var (used for basic auth)
         timeout_sec : per-request timeout in seconds
+        auth_config : explicit OAuth/certificate settings; values fall back to env
 
     The function reads from environment variables as fallback for any param
     not explicitly passed.
     """
     from .sf_client import SFClient
 
+    auth_config = auth_config or {}
     method = (auth_method or os.getenv("AUTH_METHOD", "basic")).lower()
     if method == "oauth":
         method = "oauth2"
@@ -61,10 +65,14 @@ def build_sf_client(
         )
 
     elif method == "oauth2":
-        client_id = os.getenv(f"{env_prefix}_CLIENT_ID", "")
-        client_secret = os.getenv(f"{env_prefix}_CLIENT_SECRET", "")
-        token_url = os.getenv(f"{env_prefix}_TOKEN_URL", "")
-        company_id = os.getenv(f"{env_prefix}_COMPANY_ID", os.getenv("SF_COMPANY_ID", ""))
+        client_id = auth_config.get("client_id") or os.getenv(f"{env_prefix}_CLIENT_ID", "")
+        client_secret = auth_config.get("client_secret") or os.getenv(f"{env_prefix}_CLIENT_SECRET", "")
+        token_url = auth_config.get("token_url") or os.getenv(f"{env_prefix}_TOKEN_URL", "")
+        company_id = (
+            auth_config.get("company_id")
+            or os.getenv(f"{env_prefix}_COMPANY_ID")
+            or os.getenv("SF_COMPANY_ID", "")
+        )
         if not client_id or not client_secret or not token_url or not company_id:
             raise AuthError(
                 f"OAuth auth requires {env_prefix}_CLIENT_ID, "
@@ -91,8 +99,8 @@ def build_sf_client(
         return client
 
     elif method == "certificate":
-        cert_path = os.getenv(f"{env_prefix}_CERT_PATH", "")
-        key_path = os.getenv(f"{env_prefix}_KEY_PATH", "")
+        cert_path = auth_config.get("cert_path") or os.getenv(f"{env_prefix}_CERT_PATH", "")
+        key_path = auth_config.get("key_path") or os.getenv(f"{env_prefix}_KEY_PATH", "")
         if not cert_path or not key_path:
             raise AuthError(
                 f"Certificate auth requires {env_prefix}_CERT_PATH and {env_prefix}_KEY_PATH"
