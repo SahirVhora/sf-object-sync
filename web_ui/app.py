@@ -60,12 +60,32 @@ def add_security_headers(response):
 
 # Optional shared-secret gate. Off by default (local single-user tool); set
 # WEB_UI_TOKEN to require it on every request when binding beyond localhost.
+# ADR-0003 (movement-tool): header-first, query-string fallback is deprecated.
 @app.before_request
 def _require_token():
     expected = os.getenv("WEB_UI_TOKEN")
     if not expected:
         return None
-    supplied = request.headers.get("X-Auth-Token") or request.args.get("token")
+    # Header is the primary channel; the legacy ?token= path is logged as a
+    # deprecation warning when used so operators can find and update clients.
+    supplied = request.headers.get("X-Auth-Token", "")
+    if not supplied:
+        legacy = request.args.get("token", "")
+        if legacy:
+            # ADR-0003 (movement-tool): the legacy ?token= path is deprecated
+            # and exposed via the message so operators can find and update
+            # clients. Surfaced through app.logger (always available under
+            # Flask) so we never hit NameError on this fallback path. The
+            # actual rejection (401 with no fallback) is a followup ; this
+            # round keeps behaviour backwards-compatible while ensuring the
+            # deprecation signal is observable.
+            app.logger.warning(
+                "sf-object-sync: ?token= legacy auth on path=%s remote=%s "
+                "(deprecated; switch to X-Auth-Token header per ADR-0003).",
+                request.path,
+                request.remote_addr,
+            )
+            supplied = legacy
     if supplied != expected:
         return "Unauthorized", 401
     return None

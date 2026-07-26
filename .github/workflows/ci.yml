@@ -10,14 +10,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt -r requirements-web.txt
       - name: Lint with ruff
-        run: pip install ruff && ruff check .
+        # Pin the known-good release and the classic baseline rules so a future
+        # Ruff default change cannot turn pre-existing advisory rules into a
+        # portfolio-wide CI outage.
+        run: pip install ruff==0.15.10 && ruff check --select E4,E7,E9,F .
       - name: Run tests
         run: pytest tests/ -q
