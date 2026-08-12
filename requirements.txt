@@ -1,5 +1,5 @@
 # Core dependencies
-sapsf-shared @ git+https://github.com/SahirVhora/sapsf-shared.git
+sapsf-shared @ git+https://github.com/SahirVhora/sapsf-shared.git@91a4a1cccac5c1df66c215857e8a4b01608118ef
 requests==2.34.2
 openpyxl==3.1.5
 flask==3.1.3
