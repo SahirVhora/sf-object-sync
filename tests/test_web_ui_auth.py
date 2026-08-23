@@ -4,16 +4,16 @@ Behaviour pinned on 2026-07-25 per ADR-0003 (see
 ``sapsf/_shared/docs/ADR-0003-deprecation-window.md``):
 
   * ``X-Auth-Token`` header is the primary channel - 200 on correct value.
-  * ``?token=...`` query string is a backward-compatible fallback that emits
-    exactly one ``app.logger.warning`` per request (deprecation signal).
+  * ``?token=...`` query strings are permanently rejected so credentials do
+    not leak through browser history, referrers, access logs, or copied URLs.
   * Wrong or missing tokens always return 401 with body ``Unauthorized``.
   * When ``WEB_UI_TOKEN`` is unset, the gate stays open (local single-user
     tool); this test always sets it.
 
-Removing the ``?token=`` fallback is scheduled for 2026-10-25. When that
-lands, ``test_query_token_falls_back_and_logs_deprecation`` is expected
-to flip to a permanent 401-regression pin.
+The former deprecation window is closed. Reintroducing a query-string token is
+a security regression.
 """
+
 from __future__ import annotations
 
 import importlib
@@ -22,7 +22,6 @@ import sys
 from pathlib import Path
 
 import pytest
-
 
 # Single secret used everywhere - hoist avoids typo drift across test bodies.
 AUTH_SECRET = "auth-secret-xyz-001"
@@ -59,28 +58,14 @@ def test_auth_wrong_token_returns_401(web_app):
     assert client.get("/").status_code == 401
 
 
-def test_query_token_falls_back_and_logs_deprecation(web_app, caplog):
-    """ADR-0003 window: ``?token=`` still works but emits one warning.
-
-    The log message must contain ``path=`` and ``remote=`` so operators can
-    grep the deprecation signal during probes. We also pin the named logger
-    (``web_ui.app``) - Flask's ``app.logger`` propagates by default, but
-    binding explicitly documents the contract under test.
-    """
+def test_query_token_is_rejected(web_app, caplog):
+    """ADR-0003: credentials in URLs never authenticate a request."""
     client = web_app.test_client()
     with caplog.at_level(logging.WARNING, logger="web_ui.app"):
         resp = client.get("/?token=" + AUTH_SECRET)
-    assert resp.status_code == 200
-    deprecations = [r for r in caplog.records if "deprecated" in r.message]
-    assert len(deprecations) == 1, (
-        f"expected exactly 1 deprecation warning, got: "
-        f"{[r.message for r in caplog.records]}"
-    )
-    msg = deprecations[0].message
-    # Pin the operator-grep surface.
-    assert "X-Auth-Token" in msg
-    assert "path=" in msg
-    assert "remote=" in msg
+    assert resp.status_code == 401
+    assert resp.data == b"Unauthorized"
+    assert not caplog.records
 
 
 def test_missing_token_returns_401_without_warning(web_app, caplog):

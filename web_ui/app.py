@@ -12,19 +12,25 @@ Routes:
 from __future__ import annotations
 
 import os
+import secrets
 import sys
 import threading
 import traceback
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict
+from datetime import UTC, datetime
+from typing import Any
 
 from flask import (
-    Flask, jsonify, redirect, render_template, request,
-    send_file, url_for,
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
 )
-from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.utils import secure_filename
 
 # ── Path bootstrap so we can import src.* regardless of CWD ──────────────────
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,15 +39,16 @@ if _ROOT not in sys.path:
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv(os.path.join(_ROOT, ".env"))
 except ImportError:
     pass
 
 # Imports below must follow the sys.path / dotenv bootstrap so that the
 # 'src' package can be located when this file is run as a script.
-from src.sync_engine import sync_objects  # noqa: E402
+from src.auth_handler import AuthError, build_sf_client  # noqa: E402
 from src.sf_client import SFClient, SFClientError  # noqa: E402
-from src.auth_handler import build_sf_client, AuthError  # noqa: E402
+from src.sync_engine import sync_objects  # noqa: E402
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -60,33 +67,14 @@ def add_security_headers(response):
 
 # Optional shared-secret gate. Off by default (local single-user tool); set
 # WEB_UI_TOKEN to require it on every request when binding beyond localhost.
-# ADR-0003 (movement-tool): header-first, query-string fallback is deprecated.
+# ADR-0003 (movement-tool): credentials are accepted through headers only.
 @app.before_request
 def _require_token():
     expected = os.getenv("WEB_UI_TOKEN")
     if not expected:
         return None
-    # Header is the primary channel; the legacy ?token= path is logged as a
-    # deprecation warning when used so operators can find and update clients.
     supplied = request.headers.get("X-Auth-Token", "")
-    if not supplied:
-        legacy = request.args.get("token", "")
-        if legacy:
-            # ADR-0003 (movement-tool): the legacy ?token= path is deprecated
-            # and exposed via the message so operators can find and update
-            # clients. Surfaced through app.logger (always available under
-            # Flask) so we never hit NameError on this fallback path. The
-            # actual rejection (401 with no fallback) is a followup ; this
-            # round keeps behaviour backwards-compatible while ensuring the
-            # deprecation signal is observable.
-            app.logger.warning(
-                "sf-object-sync: ?token= legacy auth on path=%s remote=%s "
-                "(deprecated; switch to X-Auth-Token header per ADR-0003).",
-                request.path,
-                request.remote_addr,
-            )
-            supplied = legacy
-    if supplied != expected:
+    if not secrets.compare_digest(supplied, expected):
         return "Unauthorized", 401
     return None
 
@@ -98,6 +86,7 @@ def handle_oversized_upload(_exc):
         error="Uploaded file is too large. Maximum size is 10 MB by default; set MAX_UPLOAD_BYTES to change it.",
     ), 413
 
+
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 OUTPUT_DIR = os.path.abspath(os.path.join(_ROOT, "output"))
 SAMPLE_FILE = os.path.join(_ROOT, "sample_data", "foundation_objects_template.xlsx")
@@ -107,7 +96,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # In-memory run registry: run_id → {"status": ..., "progress": ..., "result": ...}
-_RUNS: Dict[str, Any] = {}
+_RUNS: dict[str, Any] = {}
 _RUNS_LOCK = threading.Lock()
 
 
@@ -139,7 +128,7 @@ def _probe_connection(client: SFClient) -> tuple[bool, str]:
     return False, f"HTTP {response.status_code}: {detail}"
 
 
-def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) -> Dict[str, Any]:
+def _test_one_connection(env_name: str, auth_method: str, data: dict[str, Any]) -> dict[str, Any]:
     prefix = "source" if env_name == "source" else "target"
     label = "Source" if env_name == "source" else "Target"
     base_url = _normalise_odata_url(data.get(f"{prefix}_url") or "")
@@ -184,6 +173,7 @@ def _test_one_connection(env_name: str, auth_method: str, data: Dict[str, Any]) 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -198,11 +188,13 @@ def test_connection():
 
     source = _test_one_connection("source", auth_method, data)
     target = _test_one_connection("target", auth_method, data)
-    return jsonify({
-        "ok": source["ok"] and target["ok"],
-        "source": source,
-        "target": target,
-    })
+    return jsonify(
+        {
+            "ok": source["ok"] and target["ok"],
+            "source": source,
+            "target": target,
+        }
+    )
 
 
 @app.route("/process", methods=["POST"])
@@ -213,8 +205,7 @@ def process():
 
     f = request.files["input_file"]
     if not _allowed(f.filename):
-        return render_template("index.html",
-                               error="Invalid file type. Upload .xlsx or .csv."), 400
+        return render_template("index.html", error="Invalid file type. Upload .xlsx or .csv."), 400
 
     filename = secure_filename(f.filename)
     run_id = uuid.uuid4().hex
@@ -235,32 +226,31 @@ def process():
     target_pass = request.form.get("target_password", "").strip()
 
     # OAuth 2.0 fields
-    source_client_id     = request.form.get("source_client_id", "").strip()
+    source_client_id = request.form.get("source_client_id", "").strip()
     source_client_secret = request.form.get("source_client_secret", "").strip()
-    source_token_url     = request.form.get("source_token_url", "").strip()
-    target_client_id     = request.form.get("target_client_id", "").strip()
+    source_token_url = request.form.get("source_token_url", "").strip()
+    target_client_id = request.form.get("target_client_id", "").strip()
     target_client_secret = request.form.get("target_client_secret", "").strip()
-    target_token_url     = request.form.get("target_token_url", "").strip()
+    target_token_url = request.form.get("target_token_url", "").strip()
 
     # Certificate fields
-    source_cert_path   = request.form.get("source_cert_path", "").strip()
-    source_key_path    = request.form.get("source_key_path", "").strip()
-    source_company_id  = request.form.get("source_company_id", "").strip()
-    target_cert_path   = request.form.get("target_cert_path", "").strip()
-    target_key_path    = request.form.get("target_key_path", "").strip()
-    target_company_id  = request.form.get("target_company_id", "").strip()
+    source_cert_path = request.form.get("source_cert_path", "").strip()
+    source_key_path = request.form.get("source_key_path", "").strip()
+    source_company_id = request.form.get("source_company_id", "").strip()
+    target_cert_path = request.form.get("target_cert_path", "").strip()
+    target_key_path = request.form.get("target_key_path", "").strip()
+    target_company_id = request.form.get("target_company_id", "").strip()
 
     # Fall back to env vars when form fields are blank
-    source_url  = source_url  or os.getenv("SF_SOURCE_URL", "")
+    source_url = source_url or os.getenv("SF_SOURCE_URL", "")
     source_user = source_user or os.getenv("SF_SOURCE_USER", os.getenv("SF_SOURCE_USERNAME", ""))
     source_pass = source_pass or os.getenv("SF_SOURCE_PASSWORD", "")
-    target_url  = target_url  or os.getenv("SF_TARGET_URL", "")
+    target_url = target_url or os.getenv("SF_TARGET_URL", "")
     target_user = target_user or os.getenv("SF_TARGET_USER", os.getenv("SF_TARGET_USERNAME", ""))
     target_pass = target_pass or os.getenv("SF_TARGET_PASSWORD", "")
 
     if not source_url or not target_url:
-        return render_template("index.html",
-                               error="Source and Target URLs are required."), 400
+        return render_template("index.html", error="Source and Target URLs are required."), 400
 
     source_url = _normalise_odata_url(source_url)
     target_url = _normalise_odata_url(target_url)
@@ -301,7 +291,7 @@ def process():
             "phase": "init",
             "message": "Starting…",
             "percent": 0,
-            "started_at": datetime.now(timezone.utc).isoformat(),
+            "started_at": datetime.now(UTC).isoformat(),
             "result": None,
         }
 
@@ -333,7 +323,7 @@ def process():
             _RUNS[run_id]["message"] = message
             _RUNS[run_id]["percent"] = 100
             _RUNS[run_id]["result"] = result
-            _RUNS[run_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+            _RUNS[run_id]["completed_at"] = datetime.now(UTC).isoformat()
 
     t = threading.Thread(target=_run, daemon=True)
     t.start()
@@ -360,12 +350,14 @@ def api_status(run_id: str):
         run = _RUNS.get(run_id)
     if run is None:
         return jsonify({"error": "Unknown run ID"}), 404
-    return jsonify({
-        "status": run["status"],
-        "phase": run.get("phase", ""),
-        "message": run.get("message", ""),
-        "percent": run.get("percent", 0),
-    })
+    return jsonify(
+        {
+            "status": run["status"],
+            "phase": run.get("phase", ""),
+            "message": run.get("message", ""),
+            "percent": run.get("percent", 0),
+        }
+    )
 
 
 @app.route("/results/<run_id>")
@@ -385,8 +377,9 @@ def download_template():
     """Serve the sample input xlsx."""
     if not os.path.isfile(SAMPLE_FILE):
         return "Sample template not found. Run: python sample_data/generate_template.py", 404
-    return send_file(SAMPLE_FILE, as_attachment=True,
-                     download_name="foundation_objects_template.xlsx")
+    return send_file(
+        SAMPLE_FILE, as_attachment=True, download_name="foundation_objects_template.xlsx"
+    )
 
 
 @app.route("/download_report/<run_id>")
@@ -399,8 +392,7 @@ def download_report(run_id: str):
     report_path = (run.get("result") or {}).get("report_path")
     if not report_path or not os.path.isfile(report_path):
         return "Report not available", 404
-    return send_file(report_path, as_attachment=True,
-                     download_name=os.path.basename(report_path))
+    return send_file(report_path, as_attachment=True, download_name=os.path.basename(report_path))
 
 
 # ── Status page template (inline to keep file count low) ─────────────────────
