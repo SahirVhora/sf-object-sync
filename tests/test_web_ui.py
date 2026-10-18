@@ -12,8 +12,16 @@ if _ROOT not in sys.path:
 from web_ui.app import app  # noqa: E402
 
 
-def test_connection_api_reports_source_and_target_success():
+def _client():
     client = app.test_client()
+    with client.session_transaction() as session:
+        session["csrf_token"] = "test-csrf"
+    client.environ_base["HTTP_X_CSRF_TOKEN"] = "test-csrf"
+    return client
+
+
+def test_connection_api_reports_source_and_target_success():
+    client = _client()
     payload = {
         "auth_method": "basic",
         "source_url": "https://prd.example.com/odata/v2",
@@ -24,7 +32,9 @@ def test_connection_api_reports_source_and_target_success():
         "target_password": "target_pass",
     }
 
-    with patch("web_ui.app._probe_connection", return_value=(True, "Connection successful")):
+    with patch(
+        "web_ui.app._probe_connection", return_value=(True, "Connection successful")
+    ):
         response = client.post("/api/test_connection", json=payload)
 
     assert response.status_code == 200
@@ -35,7 +45,7 @@ def test_connection_api_reports_source_and_target_success():
 
 
 def test_connection_api_normalises_tenant_host_urls():
-    client = app.test_client()
+    client = _client()
     payload = {
         "auth_method": "basic",
         "source_url": "https://api55.sapsf.eu",
@@ -63,7 +73,7 @@ def test_connection_api_normalises_tenant_host_urls():
 
 
 def test_connection_api_validates_required_urls():
-    client = app.test_client()
+    client = _client()
 
     response = client.post("/api/test_connection", json={"auth_method": "basic"})
 
@@ -73,8 +83,11 @@ def test_connection_api_validates_required_urls():
     assert body["source"]["ok"] is False
     assert body["target"]["ok"] is False
 
+
 def test_settings_script_does_not_persist_sensitive_fields():
-    script = open(os.path.join(_ROOT, "web_ui", "static", "script.js"), encoding="utf-8").read()
+    script = open(
+        os.path.join(_ROOT, "web_ui", "static", "script.js"), encoding="utf-8"
+    ).read()
 
     assert "const SENSITIVE_FIELDS" in script
     assert "!SENSITIVE_FIELDS.has(id)" in script
@@ -83,7 +96,7 @@ def test_settings_script_does_not_persist_sensitive_fields():
 
 
 def test_upload_size_limit_returns_413():
-    client = app.test_client()
+    client = _client()
     original_limit = app.config["MAX_CONTENT_LENGTH"]
     app.config["MAX_CONTENT_LENGTH"] = 8
     try:
@@ -100,7 +113,7 @@ def test_upload_size_limit_returns_413():
 
 
 def test_background_sync_exception_marks_run_failed():
-    client = app.test_client()
+    client = _client()
 
     def boom(**_kwargs):
         raise RuntimeError("simulated failure")
@@ -132,3 +145,49 @@ def test_background_sync_exception_marks_run_failed():
     assert status["percent"] == 100
     assert "Sync failed" in status["message"]
 
+
+def test_cross_origin_sync_cannot_use_saved_credentials(monkeypatch):
+    monkeypatch.setenv("SF_SOURCE_PASSWORD", "synthetic")
+    with patch("web_ui.app.sync_objects") as sync:
+        response = app.test_client().post(
+            "/process",
+            headers={"Origin": "https://untrusted.example"},
+            data={"input_file": (BytesIO(b"x"), "input.csv")},
+        )
+    assert response.status_code == 403
+    sync.assert_not_called()
+
+
+def test_missing_csrf_token_is_rejected():
+    response = app.test_client().post("/api/test_connection", json={})
+    assert response.status_code == 403
+
+
+def test_write_mode_requires_explicit_confirmation(tmp_path):
+    import importlib
+
+    module = importlib.import_module("web_ui.app")
+
+    class InlineThread:
+        def __init__(self, target, **_kwargs):
+            self.target = target
+
+        def start(self):
+            self.target()
+
+    for confirmation, expected_dry_run in [(None, True), ("yes", False)]:
+        data = {
+            "source_url": "https://source.example",
+            "target_url": "https://target.example",
+            "input_file": (BytesIO(b"synthetic"), "input.csv"),
+        }
+        if confirmation:
+            data["confirm_write"] = confirmation
+        with (
+            patch.object(module, "UPLOAD_FOLDER", str(tmp_path)),
+            patch.object(module.threading, "Thread", InlineThread),
+            patch.object(module, "sync_objects", return_value={}) as sync,
+        ):
+            response = _client().post("/process", data=data)
+        assert response.status_code == 302
+        assert sync.call_args.kwargs["dry_run"] is expected_dry_run

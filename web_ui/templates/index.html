@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SF Object Sync</title>
 <meta property="og:image" content="https://sahirvhora.github.io/sf-object-sync/preview.svg">
@@ -224,6 +225,7 @@
       <form id="sync-form" method="POST" action="{{ url_for('process') }}"
             enctype="multipart/form-data" onsubmit="populateHiddenFields()">
 
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <!-- Hidden credential pass-through fields -->
         <input type="hidden" name="auth_method"         id="h_auth_method">
         <input type="hidden" name="source_url"          id="h_source_url">
@@ -267,6 +269,10 @@
               </span>
             </label>
           </div>
+          <label class="checkbox-label">
+            <input type="checkbox" name="confirm_write" value="yes">
+            <span>I authorize target writes when Dry Run is unchecked.</span>
+          </label>
         </section>
 
         <div class="form-actions">

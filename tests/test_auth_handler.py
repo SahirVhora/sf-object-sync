@@ -104,8 +104,13 @@ def test_certificate_explicit_config_overrides_environment(monkeypatch, tmp_path
     client.close()
 
 
-def test_connection_api_passes_oauth_credentials_without_mutating_environment(monkeypatch):
+def test_connection_api_passes_oauth_credentials_without_mutating_environment(
+    monkeypatch,
+):
     client = app.test_client()
+    with client.session_transaction() as session:
+        session["csrf_token"] = "test-csrf"
+    client.environ_base["HTTP_X_CSRF_TOKEN"] = "test-csrf"
     monkeypatch.setenv("SF_SOURCE_CLIENT_SECRET", "process-level-secret")
     captured = {}
 
@@ -128,8 +133,11 @@ def test_connection_api_passes_oauth_credentials_without_mutating_environment(mo
         "source_token_url": "https://login.example.com/token",
         "source_company_id": "request-company",
     }
-    with patch("web_ui.app.build_sf_client", fake_build_client), patch(
-        "web_ui.app._probe_connection", return_value=(True, "Connection successful")
+    with (
+        patch("web_ui.app.build_sf_client", fake_build_client),
+        patch(
+            "web_ui.app._probe_connection", return_value=(True, "Connection successful")
+        ),
     ):
         response = client.post("/api/test_connection", json=payload)
 
@@ -153,6 +161,9 @@ def test_connection_api_passes_oauth_credentials_without_mutating_environment(mo
 
 def test_process_passes_request_auth_without_mutating_environment(monkeypatch):
     client = app.test_client()
+    with client.session_transaction() as session:
+        session["csrf_token"] = "test-csrf"
+    client.environ_base["HTTP_X_CSRF_TOKEN"] = "test-csrf"
     sentinel = {
         "AUTH_METHOD": "process-auth",
         "SF_SOURCE_CLIENT_SECRET": "process-source-secret",
@@ -206,7 +217,10 @@ def test_process_passes_request_auth_without_mutating_environment(monkeypatch):
     }
     assert captured["target_config"]["auth_method"] == "oauth"
     assert captured["target_config"]["auth_config"]["company_id"] == "target-company"
-    assert captured["target_config"]["auth_config"]["client_secret"] == "target-request-secret"
+    assert (
+        captured["target_config"]["auth_config"]["client_secret"]
+        == "target-request-secret"
+    )
     assert {key: os.environ[key] for key in sentinel} == sentinel
 
 
@@ -222,7 +236,10 @@ def test_make_clients_passes_request_scoped_auth_config(monkeypatch):
         "prd": {
             "base_url": "https://prd.example.com/odata/v2",
             "auth_method": "oauth",
-            "auth_config": {"client_secret": "source-secret", "company_id": "source-company"},
+            "auth_config": {
+                "client_secret": "source-secret",
+                "company_id": "source-company",
+            },
         },
         "dev": {
             "base_url": "https://dev.example.com/odata/v2",

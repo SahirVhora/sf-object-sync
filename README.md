@@ -400,3 +400,10 @@ Related tools:
 - [Config Compare](https://github.com/SahirVhora/sf-config-compare) - Compare metadata and picklists across tenants
 - [Position Integrity Checker](https://github.com/SahirVhora/sf-position-integrity-checker) - Validate position data integrity
 - [Config Debt Radar](https://github.com/SahirVhora/sf-config-debt-radar) - Scan EC configuration debt - CLI, dashboard, MCP server
+
+### Browser request protection
+
+Browser forms and connection tests require a session CSRF token. Requests from a different Origin are rejected.
+Dry Run remains active unless it is unchecked and target writes are explicitly authorized.
+For non-browser clients, set `WEB_UI_TOKEN` and send `X-Auth-Token` on every request.
+This header does not bypass the Origin check. Keep local tools bound to loopback unless remote authentication is configured.
