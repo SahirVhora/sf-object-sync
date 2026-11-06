@@ -260,6 +260,11 @@ def generate_report(
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
     filename = f"sync_report_{ts}.xlsx"
     path = os.path.join(output_dir, filename)
+    for sheet in wb.worksheets:
+        for row in sheet:
+            for cell in row:
+                if cell.data_type == "f":
+                    cell.data_type = "s"
     wb.save(path)
     logger.info("Excel report written: %s", path)
     return path
