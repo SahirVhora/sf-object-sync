@@ -19,9 +19,12 @@ import traceback
 import uuid
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import urlsplit
 
 from flask import (
     Flask,
+    abort,
+    session,
     jsonify,
     redirect,
     render_template,
@@ -76,6 +79,37 @@ def _require_token():
     supplied = request.headers.get("X-Auth-Token", "")
     if not secrets.compare_digest(supplied, expected):
         return "Unauthorized", 401
+    return None
+
+
+def _csrf_token():
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_urlsafe(32)
+    return session["csrf_token"]
+
+
+app.jinja_env.globals["csrf_token"] = _csrf_token
+app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Strict")
+
+
+@app.before_request
+def _protect_mutations():
+    if request.method not in {"POST", "PUT", "PATCH", "DELETE"}:
+        return None
+    origin = request.headers.get("Origin")
+    expected = urlsplit(request.host_url)
+    supplied = urlsplit(origin or "")
+    if origin and (supplied.scheme, supplied.netloc) != (
+        expected.scheme,
+        expected.netloc,
+    ):
+        abort(403, "Cross-origin requests are not allowed")
+    # Explicit header authentication also supports non-browser API clients.
+    if os.getenv("WEB_UI_TOKEN"):
+        return None
+    token = request.headers.get("X-CSRF-Token") or request.form.get("csrf_token", "")
+    if not token or not secrets.compare_digest(token, session.get("csrf_token", "")):
+        abort(403, "CSRF token missing or invalid")
     return None
 
 
@@ -215,7 +249,7 @@ def process():
     # ── Read form fields ──────────────────────────────────────────────────────
     auth_method = request.form.get("auth_method", "basic")
     # Checkbox is absent from form data when unchecked - treat presence as True
-    dry_run = "dry_run" in request.form
+    dry_run = "dry_run" in request.form or request.form.get("confirm_write") != "yes"
     print(f"Dry Run Mode: {dry_run}")
 
     source_url = request.form.get("source_url", "").strip()
