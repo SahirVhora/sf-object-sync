@@ -1,3 +1,4 @@
+-c security-constraints.txt
 # Core dependencies
 sapsf-shared @ git+https://github.com/SahirVhora/sapsf-shared.git@da247058792dd30cfed282fd2001b7aaa5a34ff2
 requests==2.34.2
